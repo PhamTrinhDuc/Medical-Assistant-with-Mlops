@@ -1,25 +1,17 @@
-"""
-Database initialization script
-Creates all tables and optionally seeds with sample data
-"""
 import sys
 import os
-
-# Add the backend directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-from utils.database import create_tables, drop_tables, engine, Base
+from utils.database import create_tables, drop_tables, sync_engine, Base
 from sqlalchemy_utils import database_exists, create_database
 
-print("Importing models...")
-from models.users import User
-from models.conversation import Conversation, Message
+from entities.users import User
+from entities.conversation import Conversation, Message
 
 # Check and create database if it doesn't exist
 def ensure_database():
-    if not database_exists(engine.url):
+    if not database_exists(sync_engine.url):
         print("Database does not exist. Creating database...")
-        create_database(engine.url)
+        create_database(sync_engine.url)
         print("Database created successfully!")
     else:
         print("Database already exists.")
