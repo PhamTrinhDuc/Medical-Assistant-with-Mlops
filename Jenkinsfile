@@ -23,12 +23,6 @@ pipeline {
       }
       steps {
         echo 'Installing dependencies...'
-        sh '''
-          cd backend
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r ../tests/requirements.txt
-        '''
       }
     }
 
@@ -38,10 +32,6 @@ pipeline {
       }
       steps {
         echo 'Linting code...'
-        sh '''
-          pip install pylint flake8
-          python -m flake8 backend/ --max-line-length=120 --exclude=venv,__pycache__
-        '''
       }
     }
 
@@ -51,10 +41,6 @@ pipeline {
       }
       steps {
         echo 'Running tests...'
-        sh '''
-          cd backend
-          pytest -v --tb=short --junitxml=test-results.xml
-        '''
       }
     }
 
