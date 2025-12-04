@@ -37,9 +37,9 @@ pipeline {
         echo '===== Installing dependencies ====='
         sh '''
           cd backend
-          python3 -m pip install --upgrade pip
-          pip install -e .
-          pip install -r ../tests/requirements.txt
+          python3 -m pip install --upgrade pip --break-system-packages
+          pip install -e . --break-system-packages
+          pip install -r ../tests/requirements.txt --break-system-packages
         '''
       }
     }
@@ -52,7 +52,7 @@ pipeline {
         echo '===== Running linting ====='
         sh '''
           cd backend
-          pip install flake8
+          pip install flake8 --break-system-packages
           python3 -m flake8 . --max-line-length=120 --exclude=venv,__pycache__,.venv || true
         '''
       }
