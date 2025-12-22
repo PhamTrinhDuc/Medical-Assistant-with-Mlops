@@ -12,7 +12,7 @@ backend_path = Path(__file__).parent.parent / "backend"
 sys.path.insert(0, str(backend_path))
 
 from backend.main import app, get_db
-from backend.database import Base, User, Conversation, Message
+from backend.app.database import Base, User, Conversation, Message
 
 
 # In-memory database for testing
