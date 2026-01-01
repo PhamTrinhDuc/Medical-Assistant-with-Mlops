@@ -40,4 +40,8 @@ dev = [
   "pytest-cov>=4.1.0",
   "black>=24.0.0",
   "ruff>=0.1.0",
+  "ragas==0.2.14",
+  "langchain-groq>=0.1.10",
+  "rapidfuzz>=3.14.3",
+  "pypdf>=6.5.0",
 ]

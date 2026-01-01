@@ -35,6 +35,12 @@ class AppConfig:
   INDEX_NAME_ELS: str = "healthcare"
   REDIS_URL: str = os.getenv("REDIS_URL")
   DATABASE_URL: str = os.getenv("DATABASE_URL")
+  # HOST, PORT 
+  ELS_HOST: str = os.getenv("ELS_HOST")
+  ELS_PORT: str = os.getenv("ELS_PORT")
+
+  JAEGER_HOST: str = os.getenv("JAEGER_HOST")
+  JAEGER_PORT: str = int(os.getenv("JAEGER_PORT")) # convert sang int nếu không sẽ bug 
 
   # PARAMETERS
   VECTOR_SIZE: int=768
@@ -76,10 +82,3 @@ class AppConfig:
 
   LOG_DIR: str = str(BACKEND_DIR / "logs" / "app.log")
   
-
-  # HOST, PORT 
-  ELS_HOST: str = os.getenv("ELS_HOST")
-  ELS_PORT: str = os.getenv("ELS_PORT")
-
-  JAEGER_HOST: str = os.getenv("JAEGER_HOST")
-  JAEGER_PORT: str = int(os.getenv("JAEGER_PORT")) # convert sang int nếu không sẽ bug 

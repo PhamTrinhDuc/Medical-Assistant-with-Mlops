@@ -1,0 +1,8 @@
+| Thành phần         | Tên độ đo             | Input cần thiết              | Mục tiêu chính                            | Ý nghĩa chỉ số (Score)                                                                 |
+|--------------------|-----------------------|------------------------------|-------------------------------------------|----------------------------------------------------------------------------------------|
+| **Retrieval**<br>(Tìm kiếm) | Context Precision     | Question, Context            | Đo khả năng sắp xếp thứ tự tài liệu.      | Càng cao → thông tin đúng nằm ở ngay vị trí đầu tiên.                                 |
+|                    | Context Recall        | Context, Ground Truth        | Đo khả năng tìm đủ thông tin.             | Càng cao → tài liệu lấy về chứa đủ ý để trả lời như đáp án mẫu.                        |
+| **Generation**<br>(Tạo câu trả lời) | Faithfulness          | Answer, Context              | Chống ảo giác.                            | Càng cao → mọi ý trong câu trả lời đều có bằng chứng trong tài liệu.                  |
+|                    | Answer Relevancy      | Question, Answer             | Đo sự tập trung vào câu hỏi.              | Càng cao → trả lời đúng trọng tâm, không lan man.                                     |
+| **End-to-End**<br>(Toàn diện) | Factual Correctness   | Answer, Ground Truth         | Kiểm tra độ chính xác thông tin.          | Càng cao → thông tin (con số, sự kiện) khớp với đáp án chuẩn.                         |
+|                    | Answer Similarity     | Answer, Ground Truth         | Đo độ tương đồng ngữ nghĩa.               | Càng cao → cách diễn đạt và ý nghĩa tiệm cận với đáp án chuẩn.                         |
