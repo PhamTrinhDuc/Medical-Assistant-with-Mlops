@@ -22,3 +22,15 @@ uv remove --dev pytest
 ```bash
 docker stop $(docker ps -q)
 ```
+
+
+# Push image to DockerHub
+```bash
+# 1. Login (create token with read&write permission)
+docker login
+# 2. Create tag 
+# Command: docker tag <name-local> <username>/<new-name>:<tag>
+docker tag ai-agent:1.0 username/ai-agent:1.0
+# 3. Push to dockerhub 
+docker push username/ai-agent:1.0
+```
