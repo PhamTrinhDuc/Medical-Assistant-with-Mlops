@@ -2,6 +2,10 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from typing import Literal
+import logging
+import warnings
+from contextlib import contextmanager
+from io import StringIO
 from langchain.prompts import PromptTemplate
 from langchain_community.graphs import Neo4jGraph
 from langchain_community.chains.graph_qa.cypher import GraphCypherQAChain
@@ -34,15 +38,20 @@ class HospitalCypherChain:
     @property
     def graph(self) -> Neo4jGraph:
         """Lazy initialization of Neo4j graph."""
-        if self._graph is None:
-            self._graph = Neo4jGraph(
-                url=self.neo4j_uri,
-                username=self.neo4j_user,
-                password=self.neo4j_password,
-                enhanced_schema=True
-            )
-            self._graph.refresh_schema()
-        return self._graph
+        try:
+            if self._graph is None:
+                self._graph = Neo4jGraph(
+                    url=self.neo4j_uri,
+                    username=self.neo4j_user,
+                    password=self.neo4j_password,
+                    enhanced_schema=True, 
+                    timeout=60  # Increased to 60 for Neo4j cloud server
+                )
+                self._graph.refresh_schema()
+            return self._graph
+        except Exception as e: 
+           logger.error(f"Error during init Neo4j client. {str(e)}", exc_info=True)
+           raise
     
     def _create_prompts(self) -> tuple[PromptTemplate, PromptTemplate]:
         """Create prompt templates for Cypher generation and QA."""
@@ -97,6 +106,12 @@ class HospitalCypherChain:
         generated_cypher = response["intermediate_steps"][0]["query"]
         answer = response.get("result")
         
+        # Check if query failed
+        if "intermediate_steps" in response and len(response["intermediate_steps"]) > 1:
+          error_info = response["intermediate_steps"][1]
+          if isinstance(error_info, dict) and "error" in error_info:
+            logger.warning(f"Query execution warning: {error_info['error']}")
+        
         return answer, generated_cypher
       except Exception as e:
         logger.error(f"Error in invoke: {str(e)}")
@@ -120,22 +135,20 @@ class HospitalCypherChain:
         generated_cypher = response["intermediate_steps"][0]["query"]
         answer = response.get("result")
         
+        # Check if query failed
+        if "intermediate_steps" in response and len(response["intermediate_steps"]) > 1:
+          error_info = response["intermediate_steps"][1]
+          if isinstance(error_info, dict) and "error" in error_info:
+            logger.warning(f"Query execution warning: {error_info['error']}")
+        
         return answer, generated_cypher
       
       except Exception as e:
-        logger.error(f"Error in ainvoke: {str(e)}")
+        logger.error(f"Error in ainvoke: {str(e)}", exc_info=True)
         raise e
 
-    def __del__(self):
-        """Cleanup when object is destroyed."""
-        try:
-            if self._graph and hasattr(self._graph, '_driver'):
-                self._graph._driver.close()
-        except Exception:
-            pass
-
 if __name__ == "__main__":
-    chain = HospitalCypherChain(llm_model="google")
+    chain = HospitalCypherChain(llm_model="groq")
     query = "Tiểu bang nào có mức tăng phần trăm lớn nhất trong các lần khám Medicaid từ năm 2022 đến năm 2023"
     answer, generated_cypher = chain.invoke(query=query)
     print(f"Generated Cypher:\n{generated_cypher}\n")

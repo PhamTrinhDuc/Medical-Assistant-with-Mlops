@@ -23,6 +23,7 @@ from app.schemas import (
 )
 from mlops import setup_metrics, setup_tracing, monitor_endpoint
 
+
 def _setup_middlewares(app: FastAPI) -> None:
     """Setup all middlewares for the app."""
     
@@ -44,28 +45,32 @@ def _setup_middlewares(app: FastAPI) -> None:
         allow_headers=["*"],
     )
 
-
 def _setup_monitoring(app: FastAPI) -> None:
     """Setup monitoring tools (tracing, metrics)."""
     setup_tracing(
         app=app,
         service_name=AppConfig.APP_NAME,
-        jaeger_host=AppConfig.JAEGER_HOST,
-        jaeger_port=AppConfig.JAEGER_PORT
+        jaeger_endpoint=AppConfig.JAEGER_ENDPOINT
     )
     setup_metrics(app=app)
 
 
+def _create_agent(user_id: str) -> HospitalRAGAgent:
+    """Create a fresh agent instance (stateless approach)."""
+    return HospitalRAGAgent(
+        llm_model="openai",
+        embedding_model="openai",
+        user_id=user_id,
+        type_memory="redis"
+    )
+
+
 def _initialize_tools() -> tuple:
     """Initialize all tools and agents."""
-    agent = HospitalRAGAgent(
-        llm_model="google",
-        embedding_model="google",
-        user_id="default"
-    )
+    # These are stateless and can be shared
     dsm5_tool = DSM5RetrievalTool(embedding_model="google", top_k=10)
     cypher_tool = CypherTool(llm_model="google")
-    return agent, dsm5_tool, cypher_tool
+    return dsm5_tool, cypher_tool
 
 
 def create_app() -> FastAPI:
@@ -74,18 +79,15 @@ def create_app() -> FastAPI:
         title="DSM-5 & Hospital Chatbot",
         description="RAG chatbot with hospital and DSM-5 data",
     )
-    
-    # Setup in order
     _setup_monitoring(app)
     _setup_middlewares(app)
     
     return app
 
 
-# Create app instance
 app = create_app()
 # Initialize tools (lazy initialization can be done in startup event if needed)
-agent, dsm5_tool, cypher_tool = _initialize_tools()
+dsm5_tool, cypher_tool = _initialize_tools()
 
 @app.on_event("shutdown")
 def shutdown():
@@ -109,7 +111,8 @@ async def chat(request: QueryRequest):
   Chat endpoint - returns full response.
   """
   try:
-    logger.info(f"Starting chat for query: {request.query}")
+    logger.info(f"Starting chat for user {request.user_id}, query: {request.query}")
+    agent = _create_agent(request.user_id)
     result = await agent.ainvoke(query=request.query)
     return {
         "query": request.query,
@@ -127,9 +130,10 @@ async def stream_chat(request: QueryRequest):
   """
   Streaming endpoint - returns results as they come.
   """
-  logger.info(f"Starting streaming chat for query: {request.query}")
+  logger.info(f"Starting streaming chat for user {request.user_id}, query: {request.query}")
   async def event_generator():
     try:
+      agent = _create_agent(request.user_id)
       async for chunk in agent.astream(query=request.query):
           if 'actions' in chunk:
               for action in chunk['actions']:
