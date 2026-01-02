@@ -23,6 +23,7 @@ from app.schemas import (
 )
 from mlops import setup_metrics, setup_tracing, monitor_endpoint
 
+
 def _setup_middlewares(app: FastAPI) -> None:
     """Setup all middlewares for the app."""
     
@@ -50,8 +51,7 @@ def _setup_monitoring(app: FastAPI) -> None:
     setup_tracing(
         app=app,
         service_name=AppConfig.APP_NAME,
-        jaeger_host=AppConfig.JAEGER_HOST,
-        jaeger_port=AppConfig.JAEGER_PORT
+        jaeger_endpoint=AppConfig.JAEGER_ENDPOINT
     )
     setup_metrics(app=app)
 
@@ -60,7 +60,7 @@ def _initialize_tools() -> tuple:
     """Initialize all tools and agents."""
     agent = HospitalRAGAgent(
         llm_model="google",
-        embedding_model="google",
+        embedding_model="openai",
         user_id="default"
     )
     dsm5_tool = DSM5RetrievalTool(embedding_model="google", top_k=10)
