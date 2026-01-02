@@ -56,17 +56,27 @@ def _setup_monitoring(app: FastAPI) -> None:
     setup_metrics(app=app)
 
 
+# Global cache for agents per user (avoid recreating on each request)
+_agents_cache = {}
+
+def _get_or_create_agent(user_id: str) -> HospitalRAGAgent:
+    """Get cached agent for user or create new one."""
+    if user_id not in _agents_cache:
+        _agents_cache[user_id] = HospitalRAGAgent(
+            llm_model="openai",
+            embedding_model="openai",
+            user_id=user_id,
+            type_memory="redis"
+        )
+    return _agents_cache[user_id]
+
+
 def _initialize_tools() -> tuple:
     """Initialize all tools and agents."""
-    agent = HospitalRAGAgent(
-        llm_model="openai",
-        embedding_model="openai",
-        user_id="default",
-        type_memory="redis"
-    )
+    # These are stateless and can be shared
     dsm5_tool = DSM5RetrievalTool(embedding_model="google", top_k=10)
     cypher_tool = CypherTool(llm_model="google")
-    return agent, dsm5_tool, cypher_tool
+    return dsm5_tool, cypher_tool
 
 
 def create_app() -> FastAPI:
@@ -86,7 +96,7 @@ def create_app() -> FastAPI:
 # Create app instance
 app = create_app()
 # Initialize tools (lazy initialization can be done in startup event if needed)
-agent, dsm5_tool, cypher_tool = _initialize_tools()
+dsm5_tool, cypher_tool = _initialize_tools()
 
 @app.on_event("shutdown")
 def shutdown():
@@ -110,7 +120,8 @@ async def chat(request: QueryRequest):
   Chat endpoint - returns full response.
   """
   try:
-    logger.info(f"Starting chat for query: {request.query}")
+    logger.info(f"Starting chat for user {request.user_id}, query: {request.query}")
+    agent = _get_or_create_agent(request.user_id)
     result = await agent.ainvoke(query=request.query)
     return {
         "query": request.query,
@@ -128,9 +139,10 @@ async def stream_chat(request: QueryRequest):
   """
   Streaming endpoint - returns results as they come.
   """
-  logger.info(f"Starting streaming chat for query: {request.query}")
+  logger.info(f"Starting streaming chat for user {request.user_id}, query: {request.query}")
   async def event_generator():
     try:
+      agent = _get_or_create_agent(request.user_id)
       async for chunk in agent.astream(query=request.query):
           if 'actions' in chunk:
               for action in chunk['actions']:
