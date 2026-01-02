@@ -59,9 +59,10 @@ def _setup_monitoring(app: FastAPI) -> None:
 def _initialize_tools() -> tuple:
     """Initialize all tools and agents."""
     agent = HospitalRAGAgent(
-        llm_model="google",
+        llm_model="openai",
         embedding_model="openai",
-        user_id="default"
+        user_id="default",
+        type_memory="redis"
     )
     dsm5_tool = DSM5RetrievalTool(embedding_model="google", top_k=10)
     cypher_tool = CypherTool(llm_model="google")

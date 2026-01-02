@@ -3,16 +3,14 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from typing import Literal
 import logging
+import warnings
+from contextlib import contextmanager
+from io import StringIO
 from langchain.prompts import PromptTemplate
 from langchain_community.graphs import Neo4jGraph
 from langchain_community.chains.graph_qa.cypher import GraphCypherQAChain
 from prompt.hospital_prompt import QA_GENERATION_TEMPLATE, CYPHER_GENERATION_TEMPLATE
 from utils import ModelFactory, AppConfig, logger
-
-# Suppress Neo4j driver warnings about failed connection writes (happens on cleanup)
-logging.getLogger("neo4j").setLevel(logging.ERROR)
-logging.getLogger("neo4j.io").setLevel(logging.ERROR)
-logging.getLogger("neo4j.pool").setLevel(logging.ERROR)
 
 class HospitalCypherChain:
     """
@@ -47,7 +45,7 @@ class HospitalCypherChain:
                     username=self.neo4j_user,
                     password=self.neo4j_password,
                     enhanced_schema=True, 
-                    timeout=10  # Increased from 30 to 60 for cloud server
+                    timeout=60  # Increased to 60 for Neo4j cloud server
                 )
                 self._graph.refresh_schema()
             return self._graph
@@ -148,19 +146,6 @@ class HospitalCypherChain:
       except Exception as e:
         logger.error(f"Error in ainvoke: {str(e)}", exc_info=True)
         raise e
-
-    def __del__(self):
-        """Cleanup when object is destroyed."""
-        try:
-            if self._graph:
-                # Close Neo4j connection properly
-                if hasattr(self._graph, '_driver') and self._graph._driver:
-                    self._graph._driver.close()
-                if hasattr(self._graph, '_session') and self._graph._session:
-                    self._graph._session.close()
-        except Exception as e:
-            logger.debug(f"Cleanup exception (can be ignored): {e}")
-            pass
 
 if __name__ == "__main__":
     chain = HospitalCypherChain(llm_model="groq")
