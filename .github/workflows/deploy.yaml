@@ -33,21 +33,20 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           source $HOME/.cargo/env
           cd backend
-          uv sync --no-dev
-          uv pip install -r ./tests/requirements.txt
+          uv sync
 
       - name: Run Lint
         run: |
+          source $HOME/.cargo/env
           cd backend
-          # Chạy flake8, continue on error
-          pip install flake8
-          flake8 . --max-line-length=120 --exclude=venv,__pycache__,.venv || true
+          # Chạy flake8, continue on error để không block CI
+          uv run flake8 . --max-line-length=120 --exclude=venv,__pycache__,.venv || true
 
       - name: Run Tests
         run: |
+          source $HOME/.cargo/env
           cd backend
-          pip install pytest
-          pytest ../tests -v --tb=short --junit-xml=test-results.xml || true
+          uv run pytest tests -v --tb=short --junit-xml=test-results.xml
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -58,12 +57,14 @@ jobs:
       - name: Build and Push Docker Images
         run: |
           # Build & Push Backend
-          docker build -f backend/Dockerfile -t ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }} -t ${{ env.BACKEND_IMAGE }}:${{ env.LATEST_TAG }} .
+          cd backend
+          docker build -f Dockerfile -t ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }} -t ${{ env.BACKEND_IMAGE }}:${{ env.LATEST_TAG }} .
           docker push ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}
           docker push ${{ env.BACKEND_IMAGE }}:${{ env.LATEST_TAG }}
 
           # Build & Push Frontend
-          docker build -f frontend/Dockerfile -t ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }} -t ${{ env.FRONTEND_IMAGE }}:${{ env.LATEST_TAG }} .
+          cd frontend
+          docker build -f Dockerfile -t ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }} -t ${{ env.FRONTEND_IMAGE }}:${{ env.LATEST_TAG }} .
           docker push ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}
           docker push ${{ env.FRONTEND_IMAGE }}:${{ env.LATEST_TAG }}
 
