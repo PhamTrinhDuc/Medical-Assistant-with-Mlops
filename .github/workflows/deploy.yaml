@@ -40,7 +40,7 @@ jobs:
           source $HOME/.cargo/env
           cd backend
           # Chạy flake8, continue on error để không block CI
-          uv run flake8 . --max-line-length=120 --exclude=venv,__pycache__,.venv || true
+          uv run flake8 . --max-line-length=120 --exclude=venv,__pycache__,.venv
 
       - name: Run Tests
         run: |

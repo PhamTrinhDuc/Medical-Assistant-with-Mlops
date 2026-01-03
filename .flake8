@@ -1,0 +1,11 @@
+[flake8]
+max-line-length = 120
+extend-ignore = E203, W503
+# Loại bỏ kiểm tra với một số file đặc thù
+per-file-ignores =
+    # File init thường import để export nên sẽ bị báo unused, ta bỏ qua:
+    **/__init__.py: F401
+    # File prompt thường có dòng rất dài, ta bỏ qua lỗi line too long:
+    ./prompt/*.py: E501, W291
+    # File test thường có logic import đặc thù:
+    ./tests/*.py: E402
