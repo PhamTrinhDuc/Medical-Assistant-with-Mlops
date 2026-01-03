@@ -5,10 +5,17 @@ from langchain import hub
 from langchain.agents import AgentExecutor, Tool, create_openai_functions_agent
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_community.chat_message_histories import (
-    FileChatMessageHistory, RedisChatMessageHistory)
+    FileChatMessageHistory,
+    RedisChatMessageHistory,
+)
 
-from tools import (CypherTool, DSM5RetrievalTool, ReviewTool,
-                   get_current_wait_times, get_most_available_hospital)
+from tools import (
+    CypherTool,
+    DSM5RetrievalTool,
+    ReviewTool,
+    get_current_wait_times,
+    get_most_available_hospital,
+)
 from utils import AppConfig, ModelFactory, logger
 
 

@@ -1,8 +1,14 @@
 import pandas as pd
 from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics import (AnswerRelevancy, ContextPrecision, ContextRecall,
-                           FactualCorrectness, Faithfulness, LLMContextRecall)
+from ragas.metrics import (
+    AnswerRelevancy,
+    ContextPrecision,
+    ContextRecall,
+    FactualCorrectness,
+    Faithfulness,
+    LLMContextRecall,
+)
 
 from chains.healthcare_chain import HealthcareRetriever
 from utils import AppConfig, ModelFactory
