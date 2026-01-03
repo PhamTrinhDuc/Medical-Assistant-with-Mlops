@@ -1,10 +1,12 @@
 # logger.py
+import json
 import os
 import sys
-import json
-from datetime import timedelta, datetime
 from contextvars import ContextVar
+from datetime import datetime, timedelta
+
 from loguru import logger as _logger
+
 from .config import AppConfig
 
 # === 1. ContextVar — chỉ KHAI BÁO 1 LẦN ở global scope ===
@@ -54,17 +56,20 @@ def _setup_logger():
     _logger.remove()  # Xóa default handler
     # Patch ngay sau khi remove để đảm bảo mọi log đều có trace_id
     patched_logger = _logger.patch(_add_trace_id)
-    
+
     env = AppConfig.ENV_LOG
     log_dir = AppConfig.LOG_DIR
     os.makedirs(os.path.dirname(log_dir), exist_ok=True)
-    print(f"[LOGGER SETUP] ENV_LOG={env}, LOG_DIR={log_dir}", file=sys.stderr, flush=True)
+    print(
+        f"[LOGGER SETUP] ENV_LOG={env}, LOG_DIR={log_dir}", file=sys.stderr, flush=True
+    )
 
     if env == "production":
+
         def json_sink(message):
             try:
                 output = _json_serializer(message.record)
-                sys.stdout.write(output + '\n')
+                sys.stdout.write(output + "\n")
                 sys.stdout.flush()
             except Exception as e:
                 # Fallback: ghi lỗi log vào stderr (tránh silent fail)
@@ -74,8 +79,8 @@ def _setup_logger():
         patched_logger.add(
             json_sink,
             level="INFO",
-            enqueue=False,       # tắt 
-            backtrace=False,     # Tránh lộ stack trace nhạy cảm
+            enqueue=False,  # tắt
+            backtrace=False,  # Tránh lộ stack trace nhạy cảm
             diagnose=False,
         )
     else:
@@ -88,7 +93,7 @@ def _setup_logger():
                 "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
                 f"<level>{{message}}</level> - trace_id={trace_id}\n"
             )
-        
+
         patched_logger.add(
             log_dir,
             rotation="50 MB",

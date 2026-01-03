@@ -11,15 +11,15 @@ any information that's not from context. If you don't know an answer, say you do
 ##### LANGUAGE #####
 You need to answer in the user's language: {language}
 """
-    
+
 USER_PROMPT = """
 ##### QUESTION ##### 
 This is a user question: {question}
 """
-    
+
 TEXT_NODE_PROPERTIES = [
     "physician_name",
-    "patient_name", 
+    "patient_name",
     "text",
     "hospital_name",
 ]

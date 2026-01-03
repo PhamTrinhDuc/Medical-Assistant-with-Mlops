@@ -1,21 +1,17 @@
-import os
-import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 import pandas as pd
+from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics import (
-    LLMContextRecall,
+    AnswerRelevancy,
+    ContextPrecision,
+    ContextRecall,
+    FactualCorrectness,
     Faithfulness,
-    FactualCorrectness, 
-    AnswerRelevancy, 
-    ContextPrecision, 
-    ContextRecall
+    LLMContextRecall,
 )
-from datasets import Dataset
-from chains.healthcare_chain import HealthcareRetriever
-from utils import ModelFactory, AppConfig
 
+from chains.healthcare_chain import HealthcareRetriever
+from utils import AppConfig, ModelFactory
 
 DSM5_DATASET_EVAL_PATH = AppConfig.DSM5_DATASET_EVAL_PATH
 DSM5_RESULT_EVAL_PATH = AppConfig.DSM5_RESULT_EVAL_PATH
@@ -24,13 +20,16 @@ retriever = HealthcareRetriever()
 model = ModelFactory.get_llm_model("groq")
 
 
-def rag_with_elasticsearch(question: str): 
+def rag_with_elasticsearch(question: str):
     # Get relevant contexts from retriever
     retrieved_docs = retriever.invoke(query=question)
 
     # Format contexts as list of strings for Ragas
-    contexts = ['\n'.join([doc['title'], doc['context_headers'], doc['content']]) for doc in retrieved_docs]
-    
+    contexts = [
+        "\n".join([doc["title"], doc["context_headers"], doc["content"]])
+        for doc in retrieved_docs
+    ]
+
     prompt = f"""You are a medical expert assistant specializing in mental health disorders based on DSM-5.
 
     Use the following context to answer the question accurately and professionally.
@@ -47,7 +46,7 @@ def rag_with_elasticsearch(question: str):
     - Only using Vietnamese language to generate
 
     Answer:"""
-    
+
     # Invoke model
     response = model.invoke(prompt)
     answer = response.content.strip()
@@ -56,41 +55,45 @@ def rag_with_elasticsearch(question: str):
 
 
 def evaluate_rag(testset_df: pd.DataFrame):
-  eval_data = {
-    "user_input": [],
-    "response": [],
-    "retrieved_contexts": [],
-    "reference": []
-  }
+    eval_data = {
+        "user_input": [],
+        "response": [],
+        "retrieved_contexts": [],
+        "reference": [],
+    }
 
-  for _, row in testset_df.iterrows():
-    answer, contexts = rag_with_elasticsearch(row['user_input'])
-    
-    eval_data["user_input"].append(row['user_input'])
-    eval_data["response"].append(answer)
-    eval_data["retrieved_contexts"].append(contexts)
-    eval_data["reference"].append(row.get('reference', ''))
+    for _, row in testset_df.iterrows():
+        answer, contexts = rag_with_elasticsearch(row["user_input"])
 
-  # Evaluate
-  eval_dataset = Dataset.from_dict(eval_data)
-  result = evaluate(
-    dataset=eval_dataset,
-    metrics=[LLMContextRecall(), 
-            Faithfulness(), 
-            FactualCorrectness(), 
-            AnswerRelevancy(), 
-            ContextPrecision(), 
-            ContextRecall()]
-  )
-  return result
+        eval_data["user_input"].append(row["user_input"])
+        eval_data["response"].append(answer)
+        eval_data["retrieved_contexts"].append(contexts)
+        eval_data["reference"].append(row.get("reference", ""))
+
+    # Evaluate
+    eval_dataset = Dataset.from_dict(eval_data)
+    result = evaluate(
+        dataset=eval_dataset,
+        metrics=[
+            LLMContextRecall(),
+            Faithfulness(),
+            FactualCorrectness(),
+            AnswerRelevancy(),
+            ContextPrecision(),
+            ContextRecall(),
+        ],
+    )
+    return result
 
 
-if __name__ == "__main__": 
-#   contexts = rag_with_elasticsearch(question="Phân biệt rối loạn phát triển trí tuệ với rối loạn phổ tự kỷ như thế nào?")
-#   print(contexts)
+if __name__ == "__main__":
+    # contexts = rag_with_elasticsearch(
+    #     question="Phân biệt rối loạn phát triển trí tuệ với rối loạn phổ tự kỷ như thế nào?"
+    # )
+    # print(contexts)
 
-  testset_df = pd.read_csv(DSM5_DATASET_EVAL_PATH)
-  results = evaluate_rag(testset_df=testset_df.iloc[:10])
+    testset_df = pd.read_csv(DSM5_DATASET_EVAL_PATH)
+    results = evaluate_rag(testset_df=testset_df.iloc[:10])
 
-  df_result = results.to_pandas()
-  df_result.to_csv(DSM5_RESULT_EVAL_PATH, index=False)
+    df_result = results.to_pandas()
+    df_result.to_csv(DSM5_RESULT_EVAL_PATH, index=False)
