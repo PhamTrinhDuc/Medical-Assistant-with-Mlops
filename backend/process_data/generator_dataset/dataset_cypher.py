@@ -6,10 +6,8 @@ from groq import Groq
 from neo4j import GraphDatabase
 from pydantic import BaseModel, Field
 
-from prompt.evaluate import (
-    SYSTEM_CYPHER_GENERATION_TEMPLATE,
-    USER_CYPHER_GENERATION_TEMPLATE,
-)
+from prompt.evaluate import (SYSTEM_CYPHER_GENERATION_TEMPLATE,
+                             USER_CYPHER_GENERATION_TEMPLATE)
 from utils import AppConfig
 
 # Kết nối tới Neo4j

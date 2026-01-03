@@ -32,7 +32,8 @@ def safe_execute(cypher: str, driver):
         with driver.session() as s:
             res = s.run(cypher + " LIMIT 50")
             return {tuple(sorted(r.items())) for r in res}
-    except:
+    except Exception as e:
+        logger.error(f"Error during execute cypher query: {cypher}. {str(e)}")
         return set()
 
 
@@ -106,7 +107,7 @@ def evaludate_cypher_rag(cypher_dataset: pd.DataFrame, store_path: str = None):
             cypher_dataset.at[index, "jacc"] = jacc
 
         except Exception as e:
-            logger.error(f"Error during evaluate question: {row['question']}")
+            logger.error(f"Error during evaluate question: {row['question']}. {str(e)}")
             continue
 
     if store_path:

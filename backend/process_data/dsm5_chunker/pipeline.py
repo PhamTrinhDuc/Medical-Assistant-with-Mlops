@@ -545,7 +545,7 @@ def print_statistics(documents: List[Dict]) -> None:
     medium = sum(1 for s in sizes if MIN_CHUNK_SIZE <= s <= MAX_CHUNK_SIZE)
     long = sum(1 for s in sizes if s > MAX_CHUNK_SIZE)
 
-    print(f"\nPhân bố kích thước:")
+    print("\nPhân bố kích thước:")
     print(f"  - Ngắn (<{MIN_CHUNK_SIZE}): {short}")
     print(f"  - Vừa ({MIN_CHUNK_SIZE}-{MAX_CHUNK_SIZE}): {medium}")
     print(f"  - Dài (>{MAX_CHUNK_SIZE}): {long}")

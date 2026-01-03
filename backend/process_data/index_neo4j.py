@@ -168,7 +168,7 @@ class EmbeddingManager:
         print("   (Quá trình này có thể mất vài phút tùy vào số lượng documents)")
 
         try:
-            vector_index = Neo4jVector.from_existing_graph(
+            Neo4jVector.from_existing_graph(
                 embedding=self.embeddings,
                 url=self.neo4j_uri,
                 username=self.neo4j_user,
@@ -179,7 +179,7 @@ class EmbeddingManager:
                 text_node_properties=text_node_properties,
             )
 
-            print(f"✅ Đã insert embeddings xong!")
+            print("✅ Đã insert embeddings xong!")
             print(f"   - Model: {self.embedding_model}")
             print(f"   - Index: {index_name}")
             print(f"   - Node label: {node_label}")

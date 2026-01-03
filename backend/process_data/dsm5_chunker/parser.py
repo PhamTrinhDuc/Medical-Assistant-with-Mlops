@@ -49,7 +49,7 @@ def smart_join_lines(lines: list[str]):
         return ""
 
     # Lọc bỏ footer trang
-    filtered_lines = [l for l in lines if not is_footer_line(l.strip())]
+    filtered_lines = [line for line in lines if not is_footer_line(line.strip())]
     if not filtered_lines:
         return ""
 

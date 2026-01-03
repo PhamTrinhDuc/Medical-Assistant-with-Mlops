@@ -1,14 +1,8 @@
 import pandas as pd
 from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics import (
-    AnswerRelevancy,
-    ContextPrecision,
-    ContextRecall,
-    FactualCorrectness,
-    Faithfulness,
-    LLMContextRecall,
-)
+from ragas.metrics import (AnswerRelevancy, ContextPrecision, ContextRecall,
+                           FactualCorrectness, Faithfulness, LLMContextRecall)
 
 from chains.healthcare_chain import HealthcareRetriever
 from utils import AppConfig, ModelFactory
@@ -87,8 +81,10 @@ def evaluate_rag(testset_df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    #   contexts = rag_with_elasticsearch(question="Phân biệt rối loạn phát triển trí tuệ với rối loạn phổ tự kỷ như thế nào?")
-    #   print(contexts)
+    # contexts = rag_with_elasticsearch(
+    #     question="Phân biệt rối loạn phát triển trí tuệ với rối loạn phổ tự kỷ như thế nào?"
+    # )
+    # print(contexts)
 
     testset_df = pd.read_csv(DSM5_DATASET_EVAL_PATH)
     results = evaluate_rag(testset_df=testset_df.iloc[:10])
