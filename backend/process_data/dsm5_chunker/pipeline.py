@@ -43,7 +43,9 @@ def smart_join_lines(lines: list[str]) -> str:
         return ""
 
     # Lọc bỏ footer trang
-    filtered_lines = [line for line in lines if not PAGE_FOOTER_PATTERN.match(line.strip())]
+    filtered_lines = [
+        line for line in lines if not PAGE_FOOTER_PATTERN.match(line.strip())
+    ]
     if not filtered_lines:
         return ""
 
@@ -556,7 +558,7 @@ def print_statistics(documents: List[Dict]) -> None:
         lvl = doc["level"]
         level_counts[lvl] = level_counts.get(lvl, 0) + 1
 
-    print(f"\nTheo cấp độ:")
+    print("\nTheo cấp độ:")
     for lvl in sorted(level_counts.keys()):
         print(f"  - Level {lvl}: {level_counts[lvl]}")
 

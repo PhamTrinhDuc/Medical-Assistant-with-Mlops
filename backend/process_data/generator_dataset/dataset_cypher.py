@@ -79,7 +79,7 @@ def get_graph_schema():
         schema_text = "Node Labels & Properties:\n"
         for node in nodes_info:
             schema_text += f"- {node['nodeLabels']}: {node['propertyName']} ({node['propertyTypes']})\n"
-        
+
         schema_text += "\nRelationship Properties:\n"
         for rel in rels_info:
             schema_text += f"- {rel['relationshipType']}: {rel['propertyName']} ({rel['propertyTypes']})\n"

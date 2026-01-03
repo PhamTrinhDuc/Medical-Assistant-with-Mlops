@@ -137,7 +137,7 @@ async def stream_chat(request: QueryRequest):
             async for chunk in agent.astream(query=request.query):
                 if "actions" in chunk:
                     for action in chunk["actions"]:
-                        yield f"data: {json.dumps({'type': 'tool', 
+                        yield f"data: {json.dumps({'type': 'tool',
                                                    'tool': action.tool,
                                                    'input': str(action.tool_input)})}\n\n"
                 elif "steps" in chunk:
