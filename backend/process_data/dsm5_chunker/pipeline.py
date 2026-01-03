@@ -43,7 +43,7 @@ def smart_join_lines(lines: list[str]) -> str:
         return ""
 
     # Lọc bỏ footer trang
-    filtered_lines = [l for l in lines if not PAGE_FOOTER_PATTERN.match(l.strip())]
+    filtered_lines = [line for line in lines if not PAGE_FOOTER_PATTERN.match(line.strip())]
     if not filtered_lines:
         return ""
 
@@ -173,7 +173,7 @@ def split_long_content(text: str) -> List[Dict[str, Any]]:
                 sub_id = f"criteria_{criteria_label}"
                 sub_title = f"Tiêu chí {criteria_label}"
             else:
-                sub_id = f"intro"
+                sub_id = "intro"
                 sub_title = "Giới thiệu"
 
             # Nếu phần này vẫn còn quá dài, split tiếp theo câu
@@ -207,7 +207,7 @@ def split_long_content(text: str) -> List[Dict[str, Any]]:
                     sub_id = f"item_{item_num}"
                     sub_title = f"Mục {item_num}"
                 else:
-                    sub_id = f"intro"
+                    sub_id = "intro"
                     sub_title = "Giới thiệu"
 
                 sub_chunks.append(
@@ -485,9 +485,9 @@ def extract_dsm_chunk_hierarchical(pdf_path: str) -> List[Dict[str, Any]]:
 
                     # Tìm parent_unique_id (level gần nhất thấp hơn)
                     parent_unique_id = None
-                    for l in range(level - 1, 0, -1):
-                        if l in last_section_at_level:
-                            parent_unique_id = last_section_at_level[l]
+                    for line in range(level - 1, 0, -1):
+                        if line in last_section_at_level:
+                            parent_unique_id = last_section_at_level[line]
                             break
 
                     current_chunk = {

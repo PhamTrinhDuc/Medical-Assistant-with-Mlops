@@ -61,13 +61,13 @@ def load_hospital_graph_from_csv() -> None:
     logger.info("Loading hospital nodes")
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
-    LOAD CSV WITH HEADERS 
+    LOAD CSV WITH HEADERS
       FROM $CSV_PATH AS row
       MERGE (h:Hospital {id: toInteger(row.hospital_id)})
-      ON CREATE SET 
+      ON CREATE SET
         h.name = row.hospital_name,
         h.state_name = row.hospital_state
-      ON MATCH SET 
+      ON MATCH SET
         h.name = row.hospital_name,
         h.state_name = row.hospital_state
     """
@@ -77,16 +77,16 @@ def load_hospital_graph_from_csv() -> None:
     logger.info("Loading physician nodes")
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
-    LOAD CSV WITH HEADERS 
+    LOAD CSV WITH HEADERS
       FROM $CSV_PATH AS row
       MERGE (p:Physician {id: toInteger(row.physician_id)})
-      ON CREATE SET 
+      ON CREATE SET
         p.name = row.physician_name,
         p.school = row.medical_school,
         p.dob = row.physician_dob,
         p.grad_year = row.physician_grad_year,
         p.salary = toFloat(row.salary)
-      ON MATCH SET 
+      ON MATCH SET
         p.name = row.physician_name,
         p.school = row.medical_school,
         p.dob = row.physician_dob,
@@ -98,7 +98,7 @@ def load_hospital_graph_from_csv() -> None:
     logger.info("Loading patient nodes")
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
-    LOAD CSV WITH HEADERS 
+    LOAD CSV WITH HEADERS
       FROM $CSV_PATH AS row
       MERGE (p:Patient {id: toInteger(row.patient_id)})
       ON CREATE SET
@@ -112,7 +112,7 @@ def load_hospital_graph_from_csv() -> None:
     logger.info("Loading payer node")
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
-    LOAD CSV WITH HEADERS 
+    LOAD CSV WITH HEADERS
       FROM $CSV_PATH AS row
       MERGE (p:Payer {id: toInteger(row.payer_id)})
       ON CREATE SET
@@ -125,7 +125,7 @@ def load_hospital_graph_from_csv() -> None:
     logger.info("Loading visit node")
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
-    LOAD CSV WITH HEADERS 
+    LOAD CSV WITH HEADERS
       FROM $CSV_PATH AS row
       MERGE (v:Visit {id: toInteger(row.visit_id)})
       ON CREATE SET
@@ -155,7 +155,7 @@ def load_hospital_graph_from_csv() -> None:
     logger.info("Loading review node")
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
-    LOAD CSV WITH HEADERS 
+    LOAD CSV WITH HEADERS
       FROM $CSV_PATH AS row
       MERGE (r:Review {id: toInteger(row.review_id)})
       ON CREATE SET
@@ -170,7 +170,7 @@ def load_hospital_graph_from_csv() -> None:
     logger.info("Loading AT relationship")
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
-    LOAD CSV WITH HEADERS 
+    LOAD CSV WITH HEADERS
       FROM $CSV_PATH AS row
       MATCH (v:Visit {id: toInteger(row.visit_id)})
       MATCH (h:Hospital {id: toInteger(row.hospital_id)})
@@ -192,7 +192,7 @@ def load_hospital_graph_from_csv() -> None:
     logger.info("Loading HAS relationship")
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
-    LOAD CSV WITH HEADERS 
+    LOAD CSV WITH HEADERS
       FROM $CSV_PATH AS row
       MATCH (p:Patient {id: toInteger(row.patient_id)})
       MATCH (v:Visit {id: toInteger(row.visit_id)})
@@ -204,7 +204,7 @@ def load_hospital_graph_from_csv() -> None:
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
     LOAD CSV WITH HEADERS
-      FROM $CSV_PATH AS row 
+      FROM $CSV_PATH AS row
       MATCH (v:Visit {id: toInteger(row.visit_id)})
       MATCH (p:Physician {id: toInteger(row.physician_id)})
       MERGE (p)-[treats:TREATS]->(v)
@@ -228,7 +228,7 @@ def load_hospital_graph_from_csv() -> None:
     logger.info("Loading EMPLOYS relationship")
     with driver.session(database=GRAPHDB_NAME) as session:
         query = """
-    LOAD CSV WITH HEADERS 
+    LOAD CSV WITH HEADERS
       FROM $CSV_PATH AS row
       MATCH (h:Hospital {id: toInteger(row.hospital_id)})
       MATCH (p:Physician {id: toInteger(row.physician_id)})

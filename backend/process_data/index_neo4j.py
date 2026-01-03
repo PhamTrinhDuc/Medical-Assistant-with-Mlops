@@ -79,7 +79,7 @@ class EmbeddingManager:
             try:
                 # Thử cách 1: db.index.vector.drop (Neo4j 5.13+)
                 try:
-                    query = f"CALL db.index.vector.drop($index_name)"
+                    query = "CALL db.index.vector.drop($index_name)"
                     session.run(query, {"index_name": index_name})
                     print(f"✅ Đã xóa vector index '{index_name}' (method 1)")
                     return

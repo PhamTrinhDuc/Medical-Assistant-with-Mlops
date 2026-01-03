@@ -70,7 +70,7 @@ def get_graph_schema():
         # 3. Lấy Topology (Mối quan hệ giữa các Node)
         topology = session.run(
             """
-        MATCH (n)-[r]->(m) 
+        MATCH (n)-[r]->(m)
         RETURN DISTINCT labels(n) as source, type(r) as rel, labels(m) as target
     """
         ).data()
@@ -79,6 +79,10 @@ def get_graph_schema():
         schema_text = "Node Labels & Properties:\n"
         for node in nodes_info:
             schema_text += f"- {node['nodeLabels']}: {node['propertyName']} ({node['propertyTypes']})\n"
+        
+        schema_text += "\nRelationship Properties:\n"
+        for rel in rels_info:
+            schema_text += f"- {rel['relationshipType']}: {rel['propertyName']} ({rel['propertyTypes']})\n"
 
         schema_text += "\nRelationship Topology:\n"
         for top in topology:

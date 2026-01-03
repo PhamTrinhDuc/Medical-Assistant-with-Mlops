@@ -45,7 +45,7 @@ def generate_response(dataset_path: str, store_path: str = None) -> pd.DataFrame
             col in cypher_dataset.columns.to_list()
             for col in ["question", "cypher_gt", "cypher_gen", "answer"]
         ):
-            logger.info(f"The Cypher dataset is already generated")
+            logger.info("The Cypher dataset is already generated")
             return cypher_dataset
 
     logger.info("Start generate cypher query and answer")
@@ -70,7 +70,7 @@ def generate_response(dataset_path: str, store_path: str = None) -> pd.DataFrame
             cypher_dataset.at[index, "cypher_gen"] = cypher_generated
             cypher_dataset.at[index, "answer"] = answer
         else:
-            logger.warning(f"Cypher query not valid")
+            logger.warning("Cypher query not valid")
             continue
 
     logger.info(
