@@ -2,7 +2,6 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from typing import Literal
 
 from langchain.chains.retrieval_qa.base import RetrievalQA
 from langchain.prompts import ChatPromptTemplate
