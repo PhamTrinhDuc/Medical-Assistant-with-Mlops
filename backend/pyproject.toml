@@ -45,4 +45,5 @@ dev = [
   "langchain-groq>=0.1.10",
   "rapidfuzz>=3.14.3",
   "pypdf>=6.5.0",
+  "flake8>=7.3.0",
 ]

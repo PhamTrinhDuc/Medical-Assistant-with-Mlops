@@ -32,7 +32,7 @@ class MessageResponse(BaseModel):
     role: str
     content: str
     created_at: str
-    
+
     class Config:
         from_attributes = True
 
@@ -43,7 +43,6 @@ class ConversationResponse(BaseModel):
     created_at: str
     updated_at: str
     message_count: int = 0
-    
+
     class Config:
         from_attributes = True
-

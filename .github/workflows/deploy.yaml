@@ -39,7 +39,7 @@ jobs:
       - name: Run Lint
         run: |
           cd backend
-          # Chạy flake8, continue on error giống Jenkins của bạn (|| true)
+          # Chạy flake8, continue on error
           pip install flake8
           flake8 . --max-line-length=120 --exclude=venv,__pycache__,.venv 
 

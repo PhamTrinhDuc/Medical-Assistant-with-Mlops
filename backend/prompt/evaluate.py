@@ -1,5 +1,3 @@
-
-
 SYSTEM_CYPHER_GENERATION_TEMPLATE = """
 ##### ROLE ##### 
 Generate Cypher query and Question natural fllowing Neo4j Graph Schemas below
