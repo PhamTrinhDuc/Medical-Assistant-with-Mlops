@@ -11,8 +11,8 @@ from pathlib import Path
 backend_path = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_path))
 
-from main import app, get_db
-from app.database import Base, User, Conversation, Message
+from app.database import Base, User, Conversation, Message, get_db
+from main import app
 
 
 # Test database setup
@@ -79,6 +79,7 @@ def client(setup_db):
     """Create test client with overridden database."""
     app.dependency_overrides[get_db] = get_test_db
 
+    # Pass app only as positional argument (don't use app= keyword)
     test_client = TestClient(app)
     yield test_client
 

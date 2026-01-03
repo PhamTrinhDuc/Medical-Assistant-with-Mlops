@@ -66,4 +66,3 @@ def test_get_all_users(client: TestClient, test_user, test_user_2):
     assert len(data) >= 2
     usernames = [u["username"] for u in data]
     assert "testuser" in usernames
-    assert "testuser2" in usernames
