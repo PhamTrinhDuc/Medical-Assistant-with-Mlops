@@ -1,14 +1,13 @@
 import os
 import sys
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 import pandas as pd
 from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics import (AnswerRelevancy, ContextPrecision, ContextRecall,
                            FactualCorrectness, Faithfulness, LLMContextRecall)
 
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from chains.healthcare_chain import HealthcareRetriever
 from utils import AppConfig, ModelFactory
 

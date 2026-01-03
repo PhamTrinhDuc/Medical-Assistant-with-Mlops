@@ -1,7 +1,6 @@
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import time
 from functools import wraps
 from typing import Callable
@@ -12,6 +11,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.metrics import MeterProvider
 from prometheus_client import make_asgi_app
 
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from utils import logger
 
 # ============================================================

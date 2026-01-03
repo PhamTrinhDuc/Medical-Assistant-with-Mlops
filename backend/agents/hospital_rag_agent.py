@@ -1,8 +1,6 @@
 import os
 import sys
 from datetime import datetime
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from typing import Literal
 
 from langchain import hub
@@ -10,6 +8,8 @@ from langchain.agents import AgentExecutor, Tool, create_openai_functions_agent
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_community.chat_message_histories import (
     FileChatMessageHistory, RedisChatMessageHistory)
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from tools import (CypherTool, DSM5RetrievalTool, ReviewTool,
                    get_current_wait_times, get_most_available_hospital)

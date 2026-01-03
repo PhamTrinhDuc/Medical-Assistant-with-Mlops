@@ -1,7 +1,5 @@
 import os
 import sys
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import json
 import uuid
 
@@ -10,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from agents.hospital_rag_agent import HospitalRAGAgent
 from app.database import Conversation, Message, User, get_db
 from app.schemas import (ConversationCreate, MessageCreate, QueryRequest,
