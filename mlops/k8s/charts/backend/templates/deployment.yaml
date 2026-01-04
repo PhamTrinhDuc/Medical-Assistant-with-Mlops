@@ -32,5 +32,5 @@ spec:
             - configMapRef:
                 name: {{ include "chatbot-backend.fullname" . }}
             - secretRef: 
-                name: {{ .Values.secretName }}
+                name: {{ include "chatbot-backend.fullname" . }}
           resources: {{ toYaml .Values.resources | nindent 12}}

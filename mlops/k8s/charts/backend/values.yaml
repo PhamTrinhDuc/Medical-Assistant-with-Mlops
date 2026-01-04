@@ -21,7 +21,6 @@ resources:
     cpu: 100m
     memory: 256Mi
 
-secretName: chatbot-backend-secret
 env:
   ELS_HOST: "elasticsearch"
   ELS_PORT: "9200"
