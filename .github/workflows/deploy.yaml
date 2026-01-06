@@ -111,8 +111,9 @@ jobs:
             --set secrets.GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
             --set secrets.REDIS_URL=${{ secrets.REDIS_URL }} \
             --set secrets.NEO4J_PASSWORD=${{ secrets.NEO4J_PASSWORD }} \
+            --set env.JAEGER_URL=${{ vars.JAEGER_URL }} \
             --set env.ENV_LOG=${{ vars.ENV_LOG }} \
-            --set env.NEO4J_URI=${{ vars.NEO4J_URI }} \
+            --set env.JAEGER_ENDPOINT=${{ vars.JAEGER_ENDPOINT }} \
             --set env.NEO4J_USER=${{ vars.NEO4J_USER }} \
             --namespace default
           
