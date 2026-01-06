@@ -1,0 +1,38 @@
+promethues: 
+  promothuesSpec: 
+    retention: 1d # chỉ giữ dữ liệu 1 ngày 
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi # Xin 2GB ổ cứng để lưu trữ metrics
+    resources: 
+      requests: 
+        memory: "400Mi" # giới hạn mức RAM tối thiểu 
+      limits: 
+        memory: "800Mi" # giới hạn mức RAM tối đa 
+
+grafana: 
+  adminPassword: admin
+  persistence:
+    enabled: true
+    size: 1Gi
+  resources:
+    requests:
+      memory: "100Mi"
+    limits: 
+      memory: "300Mi"
+
+
+# Tắt Alertmanager (Chưa cần thiết, rất tốn RAM)
+alertmanager:
+  enabled: false
+
+# Tắt các bộ thu thập dữ liệu sâu về hệ thống CoreOS (Thường gây nặng máy)
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
