@@ -10,3 +10,14 @@ resource "kubernetes_namespace" "jaeger" {
     }
   }
 }
+
+resource "helm_release" "jaeger" {
+  name       = "jaeger"
+  repository = "https://jaegertracing.github.io/helm-charts"
+  chart      = "jaeger"
+  namespace  = kubernetes_namespace.jaeger.metadata[0].name
+
+  values = [
+    file("${path.module}/jaeger-values.yaml")
+  ]
+}

@@ -1,0 +1,24 @@
+# jaeger-values.yaml
+allInOne:
+  enabled: true # Chạy mode gọn nhẹ cho Minikube
+
+agent:
+  enabled: false # Code dùng OTLP gRPC nên không cần agent
+
+collector:
+  enabled: true
+  service:
+    otlp:
+      grpc:
+        enabled: true # Mở cổng 4317 cho code Python gửi trace qua OTLP gRPC
+
+query:
+  service:
+    type: LoadBalancer # Truy cập qua NGinx
+
+storage:
+  type: badger
+  badger:
+    persistence:
+      enabled: true
+      size: 2Gi
