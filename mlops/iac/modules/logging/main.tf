@@ -21,7 +21,7 @@ resource "helm_release" "loki_stack" {
 
   set {
     name  = "prometheus.service.type"
-    value = var.environment == "prod" ? "LoadBalancer" : "NodePort"
+    value = var.environment == "prod" ? "LoadBalancer" : "ClusterIP"
   }
 
   set {
