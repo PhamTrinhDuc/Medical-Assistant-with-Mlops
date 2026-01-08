@@ -3,7 +3,8 @@ name: CI/CD Pipeline
 # 1. TRIGGER: Khi nào chạy?
 on:
   push:
-    branches: [ "main", "mlops"] # Chạy khi push lên nhánh main
+    # branches: [ "main", "mlops"] # Chạy khi push lên nhánh main
+    branches: ["main"]
   pull_request:
     branches: [ "main" ] # Chạy khi ai đó tạo Pull Request vào main
 
