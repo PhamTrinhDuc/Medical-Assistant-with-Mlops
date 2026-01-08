@@ -157,11 +157,14 @@ kubectl delete ns monitoring
 
 ## III. Setup Nginx Ingress
 ```bash
-# install nginx
+# 1.install nginx
 minikube addons enable ingress
-# apply rule ingress for nginx controller
+# 2. apply rule ingress for nginx controller
 kubectl apply -f chatbot-ingress.yaml
 # Get IP minikube: minikube ip
 # Open file hosts (on Windows using Notepad with role Admin open C:\Windows\System32\drivers\etc\hosts. on Ubuntu: sudo nano /etc/hosts)
 # Add new line: <IP_MINIKUBE> chatbot.local (Example: 192.168.49.2 chatbot.local).
+# 3. Gỡ nginx 
+kubectl delete -f chatbot-ingress.yaml
+minikube addons disable ingress
 ```
