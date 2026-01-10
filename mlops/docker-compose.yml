@@ -321,7 +321,64 @@ services:
     networks:
       - chatbot-network
 
+  langfuse-server:
+    image: langfuse/langfuse:2
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/langfuse
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=mysecret-change-this-in-production
+      - SALT=mysalt-change-this-in-production
+      - ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
+      - TELEMETRY_ENABLED=false
+      - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=true
+      # - LANGFUSE_ENABLE_SIGNUP=false # uncomment to disable signups
+    networks:
+      - chatbot-network
+    # Jiyuu - duc78240@gmail.com - duc8504@@
 
+  db:
+    image: postgres:12.6
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=langfuse
+    ports:
+      - 5432:5432
+    volumes:
+      - ./langfuse_db_data:/var/lib/postgresql/data
+    networks:
+      - chatbot-network
+
+  db-init:
+    image: postgres:12.6
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PGHOST=db
+      - PGPORT=5432
+      - PGUSER=postgres
+      - PGPASSWORD=postgres
+    command: 
+      - bash
+      - -c
+      - |
+        psql -d postgres -c "CREATE DATABASE langfuse;" 2>/dev/null || true
+    networks:
+      - chatbot-network
+      
 volumes:
   neo4j_data:
     name: neo4j_data
