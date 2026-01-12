@@ -23,12 +23,13 @@ class ReviewTool(BaseTool):
     class Config:
         extra = "allow"  # Cho phép tạo thuộc tính mới sau khi init
 
-    def __init__(self, llm_model: str, embedding_model: str):
+    def __init__(self, llm_model: str, embedding_model: str, callbacks=None):
         """Initialize the ReviewTool with a HospitalReviewChain instance."""
         super().__init__()
         self.llm_model = llm_model
         self.embedding_model = embedding_model
         self._review_chain = None
+        self.callbacks = callbacks
 
     @property
     def review_chain(self):
@@ -50,7 +51,7 @@ class ReviewTool(BaseTool):
         Returns:
             Dictionary with 'result' (answer) and 'context' (source documents)
         """
-        answer, docs = self.review_chain.invoke(query=query)
+        answer, docs = self.review_chain.invoke(query=query, callbacks=self.callbacks)
 
         return {
             "result": answer,
@@ -67,7 +68,9 @@ class ReviewTool(BaseTool):
         Returns:
             Dictionary with 'result' (answer) and 'context' (source documents)
         """
-        answer, docs = await self.review_chain.ainvoke(query=query)
+        answer, docs = await self.review_chain.ainvoke(
+            query=query, callbacks=self.callbacks
+        )
 
         return {
             "result": answer,

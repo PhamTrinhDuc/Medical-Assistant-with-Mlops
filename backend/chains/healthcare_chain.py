@@ -1,9 +1,11 @@
 import asyncio
+import uuid
 from typing import Any, Dict, List, Literal, Optional
 
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
 from google import generativeai as genai
+from langfuse.decorators import observe, langfuse_context
 from openai import OpenAI
 
 from utils import AppConfig, logger
@@ -437,10 +439,25 @@ class HealthcareRetriever:
         """
         LangChain-compatible synchronous invoke.
         """
+        config = config or {}
+        callbacks = config.get("callbacks", []) if config else None
+        run_manager = config.get("run_manager") if config else None
+        if run_manager:
+            uuid_str = run_manager.run_id
+        else:
+            logger.warning("No run_manager provided, generating new UUID for the run.")
+            uuid_str = str(uuid.uuid4())
+
         try:
             logger.info(f"Processing sync healthcare query: {query}")
-            config = config or {}
-            return self.hybrid_search(
+            if callbacks:
+                for callback in callbacks:
+                    if hasattr(callback, "on_retriever_start"):
+                        callback.on_retriever_start(
+                            serialized={"name": "DSM-5"}, query=query, run_id=uuid_str
+                        )
+
+            results = self.hybrid_search(
                 query=query,
                 top_k=config.get("top_k", 10),
                 rrf_k=config.get("rrf_k", 60),
@@ -448,9 +465,25 @@ class HealthcareRetriever:
                 vector_weight=config.get("vector_weight", 1.2),
                 include_context=config.get("include_context", False),
             )
+
+            document = [
+                {"chunk_idx": item.get("chunk_idx"), "title": item.get("title")}
+                for item in results
+            ]
+            if callbacks:
+                for callback in callbacks:
+                    if hasattr(callback, "on_retriever_end"):
+                        callback.on_retriever_end(documents=document, run_id=uuid_str)
+
+            return results
+
         except Exception as e:
             logger.error(f"Error during sync process healhcrare: {str(e)}")
-            raise
+            if callbacks:
+                for callback in callbacks:
+                    if hasattr(callback, "on_retriever_error"):
+                        callback.on_retriever_error(error=e, run_id=uuid_str)
+            raise ValueError(f"Error retrieving DSM-5 information: {str(e)}")
 
     async def ainvoke(
         self, query: str, config: Optional[Dict[str, Any]] = None
@@ -460,39 +493,6 @@ class HealthcareRetriever:
         """
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self.invoke, query, config)
-
-    def format_context_for_llm(self, results: List[Dict], max_chars: int = 8000) -> str:
-        """
-        Format search results thành context string cho LLM.
-
-        Output format:
-        ─────────────────────────────────────────────────────────────────
-        [Section 1.2.3] Tiêu đề section
-        Tiêu chí: A
-
-        Nội dung chunk...
-        ─────────────────────────────────────────────────────────────────
-        """
-        context_parts = []
-        total_chars = 0
-
-        for result in results:
-            header = (
-                f"[Section {result.get('section_id', 'N/A')}] {result.get('title', '')}"
-            )
-            if result.get("sub_title"):
-                header += f"\nTiêu chí: {result['sub_title']}"
-
-            content = result.get("content", "")
-            entry = f"{header}\n\n{content}\n{'─' * 60}\n"
-
-            if total_chars + len(entry) > max_chars:
-                break
-
-            context_parts.append(entry)
-            total_chars += len(entry)
-
-        return "\n".join(context_parts)
 
 
 if __name__ == "__main__":
