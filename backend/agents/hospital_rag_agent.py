@@ -16,6 +16,7 @@ from tools import (
     get_current_wait_times,
     get_most_available_hospital,
 )
+from langfuse.callback import CallbackHandler
 from utils import AppConfig, ModelFactory, logger
 
 
@@ -39,26 +40,39 @@ class HospitalRAGAgent:
         self.llm_model = llm_model
         self.embedding_model = embedding_model
         self.user_id = user_id
-        self.session_id = session_id
+        self.session_id = (
+            session_id or f"{self.user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
         self.type_memory = type_memory
         self._agent_executor = None
         self._llm = None
         self._tools = None
         self._prompt = None
         self._memory = None
+        self._callback = None
+
+    @property
+    def callbacks(self):
+        if self._callback is None:
+            self._callback = CallbackHandler(
+                tags=[AppConfig.APP_NAME],
+                user_id=str(self.user_id),
+                session_id=self.session_id,
+                host=AppConfig.LANGFUSE_ENDPOINT,
+                secret_key=AppConfig.LANGFUSE_SECRET_KEY,
+                public_key=AppConfig.LANGFUSE_PUBLIC_KEY,
+                # debug=True # Enable debug mode for detailed logging
+            )
+        return self._callback
 
     @property
     def memory(self):
         if self._memory is None:
-            session_id = (
-                self.session_id
-                or f"{self.user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            )
 
             if self.type_memory == "file":
                 # File-based memory
                 file_chat_history = FileChatMessageHistory(
-                    file_path=session_id + ".json"
+                    file_path=self.session_id + ".json"
                 )
                 self._memory = ConversationBufferWindowMemory(
                     chat_memory=file_chat_history,
@@ -70,7 +84,9 @@ class HospitalRAGAgent:
             else:
                 # Redis-based memory
                 message_history = RedisChatMessageHistory(
-                    session_id=session_id, url=AppConfig.REDIS_URL, ttl=AppConfig.TTL
+                    session_id=self.session_id,
+                    url=AppConfig.REDIS_URL,
+                    ttl=AppConfig.TTL,
                 )
                 self._memory = ConversationBufferWindowMemory(
                     chat_memory=message_history,
@@ -85,7 +101,10 @@ class HospitalRAGAgent:
     def llm(self):
         """Lazy initialization of LLM model."""
         if self._llm is None:
-            self._llm = ModelFactory.get_llm_model(llm_model=self.llm_model)
+            self._llm = ModelFactory.get_llm_model(
+                llm_model=self.llm_model,
+                callbacks=[self.callbacks],  # Pass callbacks to LLM
+            )
         return self._llm
 
     @property
@@ -100,11 +119,15 @@ class HospitalRAGAgent:
         """Get or create the list of tools available to the agent."""
         if self._tools is None:
             self._tools = [
-                CypherTool(llm_model=self.llm_model),
+                CypherTool(llm_model=self.llm_model, callbacks=[self.callbacks]),
                 ReviewTool(
-                    llm_model=self.llm_model, embedding_model=self.embedding_model
+                    llm_model=self.llm_model,
+                    embedding_model=self.embedding_model,
+                    callbacks=[self.callbacks],
                 ),
-                DSM5RetrievalTool(embedding_model=self.embedding_model),
+                DSM5RetrievalTool(
+                    embedding_model=self.embedding_model, callbacks=[self.callbacks]
+                ),
                 Tool(
                     name="Waits",
                     func=get_current_wait_times,
@@ -134,11 +157,11 @@ class HospitalRAGAgent:
                 prompt=self.prompt,
                 tools=self.tools,
             )
-
             self._agent_executor = AgentExecutor(
                 agent=agent,
                 tools=self.tools,
                 memory=self.memory,
+                callbacks=[self.callbacks],
                 return_intermediate_steps=True,
                 verbose=False,
             )
@@ -167,6 +190,8 @@ class HospitalRAGAgent:
         """
         try:
             result = self.agent_executor.invoke({"input": query})
+
+            self.callbacks.flush()
             return self._extract_metadata(result)
         except Exception as e:
             logger.error(f"Error in invoke: {e}")
@@ -184,6 +209,7 @@ class HospitalRAGAgent:
         """
         try:
             result = await self.agent_executor.ainvoke({"input": query})
+            self.callbacks.flush()
             return self._extract_metadata(result)
         except Exception as e:
             logger.error(f"Error in ainvoke: {e}")
@@ -240,15 +266,66 @@ class HospitalRAGAgent:
             logger.error(f"Error in astream: {e}")
             raise e
 
+    def get_tools_call(self, query: str) -> dict:
+        """
+        Get tool calls that agent would make WITHOUT executing them.
+        """
+
+        raw_agent = create_openai_functions_agent(
+            llm=self.llm,
+            prompt=self.prompt,
+            tools=self.tools,
+        )
+
+        # Raw agent requires intermediate_steps key
+        agent_state = {"input": query, "intermediate_steps": []}
+
+        # Get initial message from agent (this triggers tool selection)
+        output = raw_agent.invoke(agent_state)
+
+        tool_calls = []
+
+        # Check if output has tool (AgentAction)
+        if hasattr(output, "tool"):
+            tool_calls.append(
+                {
+                    "tool": output.tool,
+                }
+            )
+        # If output is a message with tool_calls
+        elif hasattr(output, "tool_calls"):
+            for tool_call in output.tool_calls:
+                tool_calls.append(
+                    {
+                        "tool": tool_call.get("name") or tool_call.get("tool"),
+                    }
+                )
+
+        # If output is a tuple/list (action, observation)
+        elif isinstance(output, (tuple, list)) and len(output) > 0:
+            if hasattr(output[0], "tool"):
+                tool_calls.append(
+                    {
+                        "tool": output[0].tool,
+                    }
+                )
+
+        return {
+            "query": query,
+            "tool_calls": [tool["tool"] for tool in tool_calls],
+            "reasoning": str(output) if output else "No tool selection made",
+        }
+
 
 if __name__ == "__main__":
+    # python -m agents.hospital_rag_agent
     # Test with class instance
     agent = HospitalRAGAgent(
-        llm_model="openai", embedding_model="openai", user_id=1, type_memory="file"
+        llm_model="google", embedding_model="openai", user_id=1, type_memory="file"
     )
 
     # Test query
-    query = "Rối loạn phát triển trí tuệ ảnh hưởng đến những chức năng nào?"
+    query = "Rối loạn tic là gì và được phân loại như thế nào trong DSM-5?"
 
     response = agent.invoke(query=query)
     print(f"Query: {query}\n")

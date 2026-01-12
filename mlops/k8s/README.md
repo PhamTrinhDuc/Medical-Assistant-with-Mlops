@@ -96,6 +96,7 @@ helm install monitor prometheus-community/kube-prometheus-stack \
   --create-namespace
 
 # 3. Access to Grafana
+# kubectl port-forward -n default pod/$POD 8000:8000 &
 kubectl port-forward deployment/monitor-grafana 3000:3000 -n monitoring
 # ID: 
 # 15661 (Kubernetes / Compute Resources / Pod)
@@ -149,15 +150,22 @@ kubectl port-forward -n monitoring <pod_name> 16686:16686
 # 4. Pass var JAEGER_ENDPOINT on github secrets
 # http://<service-name>.<namespace>.svc.cluster.local
 http://jaeger.monitoring.svc.cluster.local:4317
+
+# 5. Gỡ stacks jaeger 
+helm uninstall jaeger -n monitoring
+kubectl delete ns monitoring
 ```
 
 ## III. Setup Nginx Ingress
 ```bash
-# install nginx
+# 1.install nginx
 minikube addons enable ingress
-# apply rule ingress for nginx controller
+# 2. apply rule ingress for nginx controller
 kubectl apply -f chatbot-ingress.yaml
 # Get IP minikube: minikube ip
 # Open file hosts (on Windows using Notepad with role Admin open C:\Windows\System32\drivers\etc\hosts. on Ubuntu: sudo nano /etc/hosts)
 # Add new line: <IP_MINIKUBE> chatbot.local (Example: 192.168.49.2 chatbot.local).
+# 3. Gỡ nginx 
+kubectl delete -f chatbot-ingress.yaml
+minikube addons disable ingress
 ```

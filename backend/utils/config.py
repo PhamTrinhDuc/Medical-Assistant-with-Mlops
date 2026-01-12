@@ -21,7 +21,10 @@ class AppConfig:
     # LLM AND EMBEDDING MODEL CONFIGURATION
     OPENAI_LLM: str = "gpt-4o-mini"
     GOOGLE_LLM: str = "models/gemini-2.5-flash-lite"
-    GROQ_LLM: str = "moonshotai/kimi-k2-instruct-0905"  # openai/gpt-oss-120b
+    GROQ_LLM_FORMAT_RESPONSE: str = (
+        "moonshotai/kimi-k2-instruct-0905"  # openai/gpt-oss-120b
+    )
+    GROQ_LLM: str = "llama-3.3-70b-versatile"  # qwen/qwen3-32b
     OPENAI_EMBEDDING: str = "text-embedding-3-small"
     GOOGLE_EMBEDDING: str = "models/gemini-embedding-001"
     HF_EMBEDDING_API: str = os.getenv("HF_EMBEDDING_API")
@@ -42,6 +45,10 @@ class AppConfig:
     ELS_PORT: str = os.getenv("ELS_PORT")
 
     JAEGER_ENDPOINT = os.getenv("JAEGER_ENDPOINT")
+
+    LANGFUSE_SECRET_KEY: str = os.getenv("LANGFUSE_SECRET_KEY")
+    LANGFUSE_PUBLIC_KEY: str = os.getenv("LANGFUSE_PUBLIC_KEY")
+    LANGFUSE_ENDPOINT: str = os.getenv("LANGFUSE_ENDPOINT")
 
     # PARAMETERS
     VECTOR_SIZE: int = 768
@@ -89,6 +96,14 @@ class AppConfig:
     )
     CYPHER_RESULT_EVAL_PATH: str = str(
         PROJET_ROOT / "data" / "evaluate" / "results" / "cypher_result_eval.csv"
+    )
+
+    AGENT_DATASET_EVAL_PATH: str = str(
+        PROJET_ROOT / "data" / "evaluate" / "dataset" / "agent_dataset_eval.csv"
+    )
+
+    AGENT_RESULT_EVAL_PATH: str = str(
+        PROJET_ROOT / "data" / "evaluate" / "results" / "agent_result_eval.csv"
     )
 
     LOG_DIR: str = str(BACKEND_DIR / "logs" / "app.log")

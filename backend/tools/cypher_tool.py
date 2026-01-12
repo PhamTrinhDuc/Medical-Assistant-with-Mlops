@@ -22,11 +22,12 @@ class CypherTool(BaseTool):
     class Config:
         extra = "allow"  # Cho phép tạo thuộc tính mới sau khi init
 
-    def __init__(self, llm_model: str):
+    def __init__(self, llm_model: str, callbacks=None):
         """Initialize the CypherTool with a HospitalCypherChain instance."""
         super().__init__()
         self.llm_model = llm_model
         self._cypher_chain = None
+        self.callbacks = callbacks
 
     @property
     def cypher_chain(self):
@@ -45,7 +46,9 @@ class CypherTool(BaseTool):
         Returns:
             Dictionary with 'result' (answer) and 'generated_cypher' (Cypher query)
         """
-        answer, generated_cypher = self.cypher_chain.invoke(query=query)
+        answer, generated_cypher = self.cypher_chain.invoke(
+            query=query, callbacks=self.callbacks
+        )
 
         return {"result": answer, "generated_cypher": generated_cypher}
 

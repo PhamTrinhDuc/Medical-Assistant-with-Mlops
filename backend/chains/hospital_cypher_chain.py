@@ -82,7 +82,7 @@ class HospitalCypherChain:
 
         return self._cypher_chain
 
-    def invoke(self, query: str) -> tuple[str, str]:
+    def invoke(self, query: str, callbacks=None) -> tuple[str, str]:
         """
         Synchronous Cypher query.
 
@@ -95,7 +95,9 @@ class HospitalCypherChain:
         try:
             logger.info(f"Processing sync cypher query: {query}")
             chain = self._get_cypher_chain()
-            response = chain.invoke(input={"query": query})
+            response = chain.invoke(
+                input={"query": query}, config={"callbacks": callbacks}
+            )
 
             generated_cypher = response["intermediate_steps"][0]["query"]
             answer = response.get("result")
@@ -114,7 +116,7 @@ class HospitalCypherChain:
             logger.error(f"Error in invoke: {str(e)}")
             raise e
 
-    async def ainvoke(self, query: str) -> tuple[str, str]:
+    async def ainvoke(self, query: str, callbacks=None) -> tuple[str, str]:
         """
         Asynchronous Cypher query.
 
@@ -127,7 +129,9 @@ class HospitalCypherChain:
         try:
             logger.info(f"Processing async cypher query: {query}")
             chain = self._get_cypher_chain()
-            response = await chain.ainvoke(input={"query": query})
+            response = await chain.ainvoke(
+                input={"query": query}, config={"callbacks": callbacks}
+            )
 
             generated_cypher = response["intermediate_steps"][0]["query"]
             answer = response.get("result")

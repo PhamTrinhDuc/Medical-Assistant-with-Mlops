@@ -95,7 +95,7 @@ class HospitalReviewChain:
 
         return response.get("output_text"), docs
 
-    def invoke(self, query: str) -> tuple[str, list]:
+    def invoke(self, query: str, callbacks=None) -> tuple[str, list]:
         """
         Synchronous review query.
 
@@ -107,13 +107,15 @@ class HospitalReviewChain:
         """
         try:
             logger.info(f"Processing sync review query: {query}")
-            docs = self.review_chain.retriever.invoke(input=query)
+            docs = self.review_chain.retriever.invoke(
+                input=query, config={"callbacks": self.callbacks}
+            )
             return self._process_response(query, docs)
         except Exception as e:
             logger.error(f"Error in invoke: {str(e)}")
-            raise e
+            raise ValueError(f"Error during invoke in HospitalReviewChain: {str(e)}")
 
-    async def ainvoke(self, query: str) -> tuple[str, list]:
+    async def ainvoke(self, query: str, callbacks=None) -> tuple[str, list]:
         """
         Asynchronous review query.
 
@@ -125,11 +127,13 @@ class HospitalReviewChain:
         """
         try:
             logger.info(f"Processing async review query: {query}")
-            docs = await self.review_chain.retriever.ainvoke(input=query)
+            docs = await self.review_chain.retriever.ainvoke(
+                input=query, config={"callbacks": callbacks}
+            )
             return self._process_response(query, docs)
         except Exception as e:
             logger.error(f"Error in ainvoke: {str(e)}")
-            raise e
+            raise ValueError(f"Error during ainvoke in HospitalReviewChain: {str(e)}")
 
     def __del__(self):
         """Cleanup when object is destroyed."""

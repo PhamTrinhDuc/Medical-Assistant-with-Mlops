@@ -30,7 +30,7 @@ def is_valid_cypher(query: str) -> bool:
 def safe_execute(cypher: str, driver):
     try:
         with driver.session() as s:
-            res = s.run(cypher + " LIMIT 50")
+            res = s.run(cypher)
             return {tuple(sorted(r.items())) for r in res}
     except Exception as e:
         logger.error(f"Error during execute cypher query: {cypher}. {str(e)}")
@@ -67,7 +67,7 @@ def generate_response(dataset_path: str, store_path: str = None) -> pd.DataFrame
                 )
 
             # Gán trực tiếp vào DataFrame gốc thông qua index
-            cypher_dataset.at[index, "cypher_gen"] = cypher_generated
+            cypher_dataset.at[index, "cypher_generated"] = cypher_generated
             cypher_dataset.at[index, "answer"] = answer
         else:
             logger.warning("Cypher query not valid")
@@ -120,6 +120,10 @@ if __name__ == "__main__":
     cypher_dataset = generate_response(
         dataset_path=CYPHER_DATASET_EVAL_PATH, store_path=CYPHER_RESULT_EVAL_PATH
     )
+    print(len(cypher_dataset))
+
     cypher_eval = evaludate_cypher_rag(
         cypher_dataset=cypher_dataset, store_path=CYPHER_RESULT_EVAL_PATH
     )
+
+# python -m evaluator.rag_cypher

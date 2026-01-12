@@ -1,7 +1,6 @@
 import threading
 
 from langchain.tools import BaseTool
-
 from chains.healthcare_chain import HealthcareRetriever
 from utils import logger
 
@@ -20,7 +19,7 @@ class DSM5RetrievalTool(BaseTool):
     - Differential diagnosis information
     """
 
-    name: str = "DSM5_Retriever"
+    name: str = "DSM-5"
 
     description: str = """Tool for querying DSM-5 diagnostic criteria and clinical information.
     Use cases:
@@ -40,6 +39,7 @@ class DSM5RetrievalTool(BaseTool):
         embedding_model: str = "google",  # "google" or "openai"
         top_k: int = 5,
         include_context: bool = True,
+        callbacks=None,
     ):
         """
         Initialize DSM5RetrievalTool.
@@ -48,7 +48,6 @@ class DSM5RetrievalTool(BaseTool):
             embedding_model: Embedding model to use ("google" or "openai")
             top_k: Number of top results to return (default: 5)
             include_context: Whether to include related sections
-            debug: Whether to print debug information
         """
         super().__init__()
 
@@ -56,6 +55,7 @@ class DSM5RetrievalTool(BaseTool):
         self.embedding_model = embedding_model
         self.top_k = top_k
         self.include_context = include_context
+        self.callbacks = callbacks
 
     @property
     def retriever(self):
@@ -64,7 +64,27 @@ class DSM5RetrievalTool(BaseTool):
                 self._retriever = HealthcareRetriever(model_name=self.embedding_model)
         return self._retriever
 
-    def _run(self, query: str) -> str:
+    def _format_output(self, results: dict) -> list[dict]:
+        """
+        Format the retrieval results into a structured output.
+
+        Args:
+            results: Raw results from the retriever
+
+        Returns:
+            Formatted results
+        """
+        formatted_results = []
+        for item in results:
+            formatted_item = {
+                "title": item.get("title"),
+                "content": item.get("content"),
+                "context_headers": item.get("context_headers"),
+            }
+            formatted_results.append(formatted_item)
+        return formatted_results
+
+    def _run(self, query: str, run_manager=None) -> str:
         """
         Synchronous execution of DSM-5 retrieval.
 
@@ -82,16 +102,18 @@ class DSM5RetrievalTool(BaseTool):
                 config={
                     "top_k": self.top_k,
                     "include_context": self.include_context,
+                    "callbacks": self.callbacks,
+                    "run_manager": run_manager,
                 },
             )
-            return results
+            return self._format_output(results)
 
         except Exception as e:
-            error_msg = f"DSM5RetrievalTool error: {str(e)}"
+            error_msg = f"Error retrieving DSM-5 information: {str(e)}"
             logger.error(error_msg)
-            return f"Error retrieving DSM-5 information: {str(e)}"
+            raise ValueError(error_msg)
 
-    async def _arun(self, query: str) -> str:
+    async def _arun(self, query: str, run_manager=None) -> str:
         """
         Asynchronous execution of DSM-5 retrieval.
 
@@ -108,11 +130,26 @@ class DSM5RetrievalTool(BaseTool):
                 config={
                     "top_k": self.top_k,
                     "include_context": self.include_context,
+                    "callbacks": self.callbacks,
                 },
             )
-            return results
+            return self._format_output(results)
 
         except Exception as e:
-            error_msg = f"DSM5RetrievalTool async error: {str(e)}"
+            error_msg = f"Async error retrieving DSM-5 information: {str(e)}"
             logger.error(error_msg)
-            return f"Error retrieving DSM-5 information: {str(e)}"
+            raise ValueError(error_msg)
+
+
+if __name__ == "__main__":
+    # python -m tools.health_tool
+
+    tool = DSM5RetrievalTool(embedding_model="google", top_k=3, include_context=True)
+    query = "Rối loạn tic là gì và được phân loại như thế nào trong DSM-5?"
+    response = tool.invoke(input=query)
+    print(f"Query: {query}\n")
+    print("Response:")
+    for idx, item in enumerate(response):
+        print(f"\nResult {idx + 1}:")
+        print(f"Title: {item['title']}")
+        print(f"Content: {item['content']}")
