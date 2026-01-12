@@ -13,8 +13,7 @@ ENV_PATH = BACKEND_DIR / ".env.dev"
 PROJET_ROOT = BACKEND_DIR.parent
 
 load_dotenv(ENV_PATH)
-# os.environ["LANGFUSE_PUBLIC_KEY"] = os.getenv("LANGFUSE_PUBLIC_KEY")
-# os.environ["LANGFUSE_SECRET_KEY"] = os.getenv("LANGFUSE_SECRET_KEY")
+
 
 @dataclass
 class AppConfig:

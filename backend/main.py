@@ -18,7 +18,7 @@ from app.schemas import (
 from mlops import monitor_endpoint, setup_metrics, setup_tracing
 from tools import CypherTool
 from tools.health_tool import DSM5RetrievalTool
-from utils import AppConfig, logger
+from utils import AppConfig, logger, _check_external_services
 from utils.logging import trace_id_ctx
 
 
@@ -64,12 +64,26 @@ def _create_agent(user_id: str) -> HospitalRAGAgent:
     )
 
 
-def _initialize_tools() -> tuple:
-    """Initialize all tools and agents."""
-    # These are stateless and can be shared
-    dsm5_tool = DSM5RetrievalTool(embedding_model="google", top_k=10)
-    cypher_tool = CypherTool(llm_model="google")
-    return dsm5_tool, cypher_tool
+# Global state for lazy-initialized tools
+_tools_cache = {"dsm5_tool": None, "cypher_tool": None}
+
+
+def get_dsm5_tool() -> DSM5RetrievalTool:
+    """Lazy initialization of DSM5 tool."""
+    if _tools_cache["dsm5_tool"] is None:
+        logger.info("Initializing DSM5 tool...")
+        _tools_cache["dsm5_tool"] = DSM5RetrievalTool(
+            embedding_model="google", top_k=10
+        )
+    return _tools_cache["dsm5_tool"]
+
+
+def get_cypher_tool() -> CypherTool:
+    """Lazy initialization of Cypher tool."""
+    if _tools_cache["cypher_tool"] is None:
+        logger.info("Initializing Cypher tool...")
+        _tools_cache["cypher_tool"] = CypherTool(llm_model="google")
+    return _tools_cache["cypher_tool"]
 
 
 def create_app() -> FastAPI:
@@ -85,8 +99,48 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-# Initialize tools (lazy initialization can be done in startup event if needed)
-dsm5_tool, cypher_tool = _initialize_tools()
+
+
+# Global state for service health
+_services_healthy = False
+
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    Startup event: Check external services before accepting requests.
+    Tools will be initialized lazily on first use.
+    """
+    global _services_healthy
+
+    logger.info("🚀 Starting application...")
+
+    # Check external services
+    logger.info("🔍 Checking external services...")
+    service_status = await _check_external_services()
+
+    # Determine if critical services are healthy
+    critical_services = ["elasticsearch", "neo4j", "redis", "langfuse"]
+    all_healthy = all(service_status.get(svc, False) for svc in critical_services)
+
+    if all_healthy:
+        logger.info("✅ All critical services are healthy - App ready!")
+        _services_healthy = True
+    else:
+        failed = [
+            svc for svc in critical_services if not service_status.get(svc, False)
+        ]
+        logger.warning(f"⚠️  Some services are unhealthy: {failed}")
+        logger.warning("⚠️  App will start but some features may not work")
+        _services_healthy = False
+
+    # Optional: Pre-warm tools in background to avoid first-request latency
+    # Uncomment to pre-warm:
+    # logger.info("🔥 Pre-warming tools in background...")
+    # asyncio.create_task(asyncio.to_thread(get_dsm5_tool))
+    # asyncio.create_task(asyncio.to_thread(get_cypher_tool))
+
+    logger.info("✅ Startup complete")
 
 
 @app.on_event("shutdown")
@@ -95,10 +149,33 @@ def shutdown():
     logger.complete()
 
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the DSM-5 & Hospital Chatbot API"}
+
+
 @app.get("/health")
 async def get_status():
+    """
+    Health check endpoint with detailed service status.
+    Returns 200 if app is running, 503 if critical services are down.
+    """
     logger.info("Health check requested")
-    return {"status": "running", "service": "Hospital & DSM-5 Chatbot"}
+
+    # Quick check of current service status
+    service_status = await _check_external_services()
+
+    response = {
+        "status": "healthy" if _services_healthy else "degraded",
+        "service": "Hospital & DSM-5 Chatbot",
+        "services": service_status,
+    }
+
+    # Return 503 if critical services are down
+    if not _services_healthy:
+        raise HTTPException(status_code=503, detail=response)
+
+    return response
 
 
 # ============================================================
@@ -177,6 +254,7 @@ async def dsm5_search(query: str = Query(..., description="Search query")):
     """Search DSM-5 diagnostic criteria."""
     try:
         logger.info(f"DSM5 search for query: {query}")
+        dsm5_tool = get_dsm5_tool()
         response = await dsm5_tool._arun(query=query)
         return {
             "query": query,
@@ -195,6 +273,7 @@ async def dsm5_hybrid_search(
     """Hybrid search (keyword + semantic) for DSM-5."""
     try:
         logger.info(f"DSM5 hybrid search for query: {query}")
+        dsm5_tool = get_dsm5_tool()
         results = dsm5_tool.retriever.hybrid_search(
             query=query,
             keyword_weight=0.6,
@@ -222,6 +301,7 @@ async def dsm5_criteria_search(
         logger.info(
             f"DSM5 criteria search for disorder: {disorder}, criteria: {criteria}"
         )
+        dsm5_tool = get_dsm5_tool()
         results = dsm5_tool.retriever.search_by_criteria(
             disorder_name=disorder, criteria=criteria
         )
@@ -247,6 +327,7 @@ async def cypher_query(request: QueryRequest):
     """Query hospital data using Neo4j Cypher."""
     try:
         logger.info(f"Cypher query for: {request.query}")
+        cypher_tool = get_cypher_tool()
         answer, generated_cypher = cypher_tool.cypher_chain.invoke(query=request.query)
         return {"query": request.query, "answer": answer, "cypher": generated_cypher}
     except Exception as e:
@@ -259,6 +340,7 @@ async def cypher_patients(request: QueryRequest):
     """Search for patients."""
     try:
         logger.info(f"Patient search for: {request.query}")
+        cypher_tool = get_cypher_tool()
         answer, generated_cypher = cypher_tool.cypher_chain.invoke(
             query=f"Patient search: {request.query}"
         )
@@ -273,6 +355,7 @@ async def cypher_hospital_stats(request: QueryRequest):
     """Get hospital statistics."""
     try:
         logger.info(f"Hospital statistics for: {request.query}")
+        cypher_tool = get_cypher_tool()
         answer, generated_cypher = cypher_tool.cypher_chain.invoke(
             query=f"Hospital statistics: {request.query}"
         )

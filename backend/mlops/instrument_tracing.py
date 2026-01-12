@@ -9,20 +9,7 @@ from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-from utils import logger
-
-
-def _is_jaeger_available(endpoint: str, timeout: int = 2):
-    try:
-        parsed = urlparse(endpoint)
-        host = parsed.hostname
-        port = parsed.port
-
-        with socket.create_connection((host, port), timeout=timeout):
-            return True
-    except (socket.timeout, socket.gaierror, ConnectionRefusedError, OSError) as e:
-        logger.warning(f"⚠️  Jaeger OTLP not reachable at {host}:{port} - {e}")
-        return False
+from utils import logger, _is_jaeger_available
 
 
 def setup_tracing(app: FastAPI, service_name: str, jaeger_endpoint: str):

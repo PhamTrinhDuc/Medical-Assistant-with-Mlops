@@ -16,7 +16,7 @@ from tools import (
     get_current_wait_times,
     get_most_available_hospital,
 )
-from langfuse.callback import CallbackHandler 
+from langfuse.callback import CallbackHandler
 from utils import AppConfig, ModelFactory, logger
 
 
@@ -41,8 +41,7 @@ class HospitalRAGAgent:
         self.embedding_model = embedding_model
         self.user_id = user_id
         self.session_id = (
-            session_id or \
-            f"{self.user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            session_id or f"{self.user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         )
         self.type_memory = type_memory
         self._agent_executor = None
@@ -51,8 +50,8 @@ class HospitalRAGAgent:
         self._prompt = None
         self._memory = None
         self._callback = None
-    
-    @property 
+
+    @property
     def callbacks(self):
         if self._callback is None:
             self._callback = CallbackHandler(
@@ -65,7 +64,7 @@ class HospitalRAGAgent:
                 # debug=True # Enable debug mode for detailed logging
             )
         return self._callback
-    
+
     @property
     def memory(self):
         if self._memory is None:
@@ -85,9 +84,9 @@ class HospitalRAGAgent:
             else:
                 # Redis-based memory
                 message_history = RedisChatMessageHistory(
-                    session_id=self.session_id, 
-                    url=AppConfig.REDIS_URL, 
-                    ttl=AppConfig.TTL
+                    session_id=self.session_id,
+                    url=AppConfig.REDIS_URL,
+                    ttl=AppConfig.TTL,
                 )
                 self._memory = ConversationBufferWindowMemory(
                     chat_memory=message_history,
@@ -120,12 +119,15 @@ class HospitalRAGAgent:
         """Get or create the list of tools available to the agent."""
         if self._tools is None:
             self._tools = [
-                CypherTool(llm_model=self.llm_model),
+                CypherTool(llm_model=self.llm_model, callbacks=[self.callbacks]),
                 ReviewTool(
-                    llm_model=self.llm_model, 
-                    embedding_model=self.embedding_model
+                    llm_model=self.llm_model,
+                    embedding_model=self.embedding_model,
+                    callbacks=[self.callbacks],
                 ),
-                DSM5RetrievalTool(embedding_model=self.embedding_model),
+                DSM5RetrievalTool(
+                    embedding_model=self.embedding_model, callbacks=[self.callbacks]
+                ),
                 Tool(
                     name="Waits",
                     func=get_current_wait_times,
@@ -319,11 +321,11 @@ if __name__ == "__main__":
     # python -m agents.hospital_rag_agent
     # Test with class instance
     agent = HospitalRAGAgent(
-        llm_model="openai", embedding_model="openai", user_id=1, type_memory="file"
+        llm_model="google", embedding_model="openai", user_id=1, type_memory="file"
     )
 
     # Test query
-    query = "Rối loạn phát triển trí tuệ ảnh hưởng đến những chức năng nào?"
+    query = "Rối loạn tic là gì và được phân loại như thế nào trong DSM-5?"
 
     response = agent.invoke(query=query)
     print(f"Query: {query}\n")
