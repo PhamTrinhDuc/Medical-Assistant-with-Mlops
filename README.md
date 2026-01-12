@@ -1,7 +1,7 @@
 # LLM-CHATBOT-MEDICAL-WITH-MLOPS-PIPELINE
 An enterprise healthcare intelligence system with comprehensive MLOps infrastructure, leveraging Neo4j graph database for hospital operations, Elasticsearch for DSM5 clinical knowledge retrieval, LangChain agents for multi-tool reasoning, and FastAPI for production inference serving with Redis caching and Streamlit frontend.
 ## ARCHITECTURE 
-![architecture](images/architecture.png)
+![architecture](images/architecture-v2.png)
 
 ## TABLE OF CONTENTS
 - [1. Understanding Business Data](#1-understanding-business-data)
