@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Literal, Optional
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
 from google import generativeai as genai
-from langfuse.decorators import observe, langfuse_context
 from openai import OpenAI
 
 from utils import AppConfig, logger

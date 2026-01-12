@@ -3,7 +3,7 @@
 import pandas as pd
 from tqdm import tqdm
 from agents import HospitalRAGAgent
-from utils import logger, AppConfig
+from utils import AppConfig
 
 AGENT_DATASET_EVAL_PATH = AppConfig.AGENT_DATASET_EVAL_PATH
 AGENT_RESULT_EVAL_PATH = AppConfig.AGENT_RESULT_EVAL_PATH
