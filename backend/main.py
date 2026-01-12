@@ -154,28 +154,27 @@ async def root():
     return {"message": "Welcome to the DSM-5 & Hospital Chatbot API"}
 
 
-@app.get("/health")
-async def get_status():
-    """
-    Health check endpoint with detailed service status.
-    Returns 200 if app is running, 503 if critical services are down.
-    """
+@app.get("/health/liveness")  # (sống/chết)
+async def liveness_check():
     logger.info("Health check requested")
+    return {"status": "running", "service": "Hospital & DSM-5 Chatbot"}
 
-    # Quick check of current service status
-    service_status = await _check_external_services()
 
-    response = {
-        "status": "healthy" if _services_healthy else "degraded",
-        "service": "Hospital & DSM-5 Chatbot",
-        "services": service_status,
-    }
-
-    # Return 503 if critical services are down
-    if not _services_healthy:
-        raise HTTPException(status_code=503, detail=response)
-
-    return response
+@app.get("/health/readiness")  # (sẵn sàng/chưa sẵn sàng)
+async def readiness_check():
+    """
+    Readiness check endpoint.
+    Ensures all critical services are healthy before accepting traffic.
+    """
+    if _services_healthy:
+        logger.info("Readiness check passed")
+        return {"status": "ready"}
+    else:
+        logger.error("Readiness check failed - some services are unhealthy")
+        raise HTTPException(
+            status_code=503,
+            detail="Service not ready - some critical dependencies are unhealthy",
+        )
 
 
 # ============================================================

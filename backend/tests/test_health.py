@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 def test_health_check(client: TestClient):
     """Test health check endpoint."""
-    response = client.get("/health")
+    response = client.get("/health/liveness")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "running"
@@ -14,7 +14,7 @@ def test_health_check(client: TestClient):
 
 def test_health_check_response_structure(client: TestClient):
     """Test health check returns expected structure."""
-    response = client.get("/health")
+    response = client.get("/health/liveness")
     data = response.json()
     assert "status" in data
     assert "service" in data
