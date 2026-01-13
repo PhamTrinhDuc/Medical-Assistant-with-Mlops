@@ -1,7 +1,6 @@
 import asyncio
 import json
-from typing import Literal, Union, List
-from langfuse.callback import CallbackHandler
+from typing import Literal
 from utils.config import AppConfig
 from utils.logging import logger
 
@@ -42,7 +41,7 @@ class ModelFactory:
     @staticmethod
     def get_llm_model(
         llm_model: Literal["google", "openai", "groq"] = "google",
-        callbacks: Union[CallbackHandler, List[CallbackHandler], None] = None,
+        callbacks=None,
     ):
 
         try:

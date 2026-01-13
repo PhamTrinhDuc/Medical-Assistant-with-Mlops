@@ -16,7 +16,14 @@ from app.schemas import (
     UserLogin,
     UserRegister,
 )
-from mlops import monitor_endpoint, setup_metrics, setup_tracing
+from mlops import (
+    setup_phoenix_tracing,
+    shutdown_phoenix,
+    setup_tracing,
+    monitor_endpoint,
+    setup_metrics,
+)
+
 from tools import CypherTool
 from tools.health_tool import DSM5RetrievalTool
 from utils import AppConfig, logger, _check_external_services
@@ -92,7 +99,7 @@ _services_healthy = False
 
 
 @asynccontextmanager
-async def lifespan():
+async def lifespan(app: FastAPI):
     """
     Startup event: Check external services before accepting requests.
     Tools will be initialized lazily on first use.
@@ -101,12 +108,20 @@ async def lifespan():
 
     logger.info("🚀 Starting application...")
 
+    # Setup Phoenix tracing FIRST before anything else
+    logger.info("🔥 Initializing Phoenix tracing...")
+    phoenix_ok = setup_phoenix_tracing()
+    if phoenix_ok:
+        logger.info("✅ Phoenix tracing initialized successfully")
+    else:
+        logger.warning("⚠️ Phoenix tracing failed to initialize - monitoring disabled")
+
     # Check external services
     logger.info("🔍 Checking external services...")
     service_status = await _check_external_services()
 
     # Determine if critical services are healthy
-    critical_services = ["elasticsearch", "neo4j", "redis", "langfuse"]
+    critical_services = ["elasticsearch", "neo4j", "redis"]
     all_healthy = all(service_status.get(svc, False) for svc in critical_services)
 
     if all_healthy:
@@ -131,6 +146,7 @@ async def lifespan():
     yield
 
     logger.info("Graceful shutdown started")
+    shutdown_phoenix()
     logger.complete()
 
 

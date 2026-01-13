@@ -1,12 +1,14 @@
 from datetime import datetime
 from typing import Literal
 
-from langchain import hub
-from langchain.agents import AgentExecutor, Tool, create_openai_functions_agent
-from langchain.memory import ConversationBufferWindowMemory
+from langchain_classic import hub
+from langchain_classic.agents import AgentExecutor, Tool, create_openai_functions_agent
+
+# from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_classic.memory.buffer_window import ConversationBufferWindowMemory
 from langchain_community.chat_message_histories import (
-    FileChatMessageHistory,
     RedisChatMessageHistory,
+    FileChatMessageHistory,
 )
 
 from tools import (
@@ -16,8 +18,9 @@ from tools import (
     get_current_wait_times,
     get_most_available_hospital,
 )
-from langfuse.callback import CallbackHandler
 from utils import AppConfig, ModelFactory, logger
+
+# setup_phoenix_tracing()
 
 
 class HospitalRAGAgent:
@@ -49,21 +52,6 @@ class HospitalRAGAgent:
         self._tools = None
         self._prompt = None
         self._memory = None
-        self._callback = None
-
-    @property
-    def callbacks(self):
-        if self._callback is None:
-            self._callback = CallbackHandler(
-                tags=[AppConfig.APP_NAME],
-                user_id=str(self.user_id),
-                session_id=self.session_id,
-                host=AppConfig.LANGFUSE_ENDPOINT,
-                secret_key=AppConfig.LANGFUSE_SECRET_KEY,
-                public_key=AppConfig.LANGFUSE_PUBLIC_KEY,
-                # debug=True # Enable debug mode for detailed logging
-            )
-        return self._callback
 
     @property
     def memory(self):
@@ -103,7 +91,7 @@ class HospitalRAGAgent:
         if self._llm is None:
             self._llm = ModelFactory.get_llm_model(
                 llm_model=self.llm_model,
-                callbacks=[self.callbacks],  # Pass callbacks to LLM
+                # callbacks=self.callbacks,  # Pass Phoenix callbacks to LLM
             )
         return self._llm
 
@@ -119,31 +107,35 @@ class HospitalRAGAgent:
         """Get or create the list of tools available to the agent."""
         if self._tools is None:
             self._tools = [
-                CypherTool(llm_model=self.llm_model, callbacks=[self.callbacks]),
+                CypherTool(
+                    llm_model=self.llm_model,
+                    # callbacks=self.callbacks
+                ),
                 ReviewTool(
                     llm_model=self.llm_model,
                     embedding_model=self.embedding_model,
-                    callbacks=[self.callbacks],
+                    # callbacks=self.callbacks,
                 ),
                 DSM5RetrievalTool(
-                    embedding_model=self.embedding_model, callbacks=[self.callbacks]
+                    embedding_model=self.embedding_model,
+                    # callbacks=self.callbacks
                 ),
                 Tool(
                     name="Waits",
                     func=get_current_wait_times,
                     description="""Use when asked about current wait times at a specific hospital. \
-            This tool can only get the current wait time at a hospital and does not have any information \
-            about aggregate or historical wait times. Do not pass the word "hospital" as input, only the \
-            hospital name itself. For example, if the prompt is "What is the current wait time at \
-            Jordan Inc Hospital?", the input should be "Jordan Inc".""",
+                    This tool can only get the current wait time at a hospital and does not have any information \
+                    about aggregate or historical wait times. Do not pass the word "hospital" as input, only the \
+                    hospital name itself. For example, if the prompt is "What is the current wait time at \
+                    Jordan Inc Hospital?", the input should be "Jordan Inc".""",
                 ),
                 Tool(
                     name="Availability",
                     func=get_most_available_hospital,
                     description="""Use when you need to find out which hospital has the shortest \
-            wait time. This tool does not have any information about aggregate or historical wait times. \
-            This tool returns a dictionary with the hospital name as the key and the wait time in minutes \
-            as the value.""",
+                    wait time. This tool does not have any information about aggregate or historical wait times. \
+                    This tool returns a dictionary with the hospital name as the key and the wait time in minutes \
+                    as the value.""",
                 ),
             ]
         return self._tools
@@ -161,7 +153,7 @@ class HospitalRAGAgent:
                 agent=agent,
                 tools=self.tools,
                 memory=self.memory,
-                callbacks=[self.callbacks],
+                # callbacks=self.callbacks,  # Pass Phoenix callbacks to agent executor
                 return_intermediate_steps=True,
                 verbose=False,
             )
@@ -191,7 +183,6 @@ class HospitalRAGAgent:
         try:
             result = self.agent_executor.invoke({"input": query})
 
-            self.callbacks.flush()
             return self._extract_metadata(result)
         except Exception as e:
             logger.error(f"Error in invoke: {e}")
@@ -209,7 +200,6 @@ class HospitalRAGAgent:
         """
         try:
             result = await self.agent_executor.ainvoke({"input": query})
-            self.callbacks.flush()
             return self._extract_metadata(result)
         except Exception as e:
             logger.error(f"Error in ainvoke: {e}")
@@ -325,7 +315,7 @@ if __name__ == "__main__":
     )
 
     # Test query
-    query = "Rối loạn tic là gì và được phân loại như thế nào trong DSM-5?"
+    query = "Tiêu chuẩn chẩn đoán rối loạn phổ tự kỷ theo DSM-5 là gì?"
 
     response = agent.invoke(query=query)
     print(f"Query: {query}\n")

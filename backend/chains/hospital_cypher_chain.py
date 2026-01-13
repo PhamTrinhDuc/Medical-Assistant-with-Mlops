@@ -1,6 +1,6 @@
-from langchain.prompts import PromptTemplate
-from langchain_community.chains.graph_qa.cypher import GraphCypherQAChain
-from langchain_community.graphs import Neo4jGraph
+from langchain_classic.prompts import PromptTemplate
+from langchain_neo4j import GraphCypherQAChain
+from langchain_neo4j.graphs.neo4j_graph import Neo4jGraph
 
 from prompt.hospital_prompt import CYPHER_GENERATION_TEMPLATE, QA_GENERATION_TEMPLATE
 from utils import AppConfig, ModelFactory, logger

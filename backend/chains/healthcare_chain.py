@@ -1,15 +1,18 @@
 import asyncio
-import uuid
 from typing import Any, Dict, List, Literal, Optional
 
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
-from google import generativeai as genai
+from google import genai
 from openai import OpenAI
+from opentelemetry import trace
 
 from utils import AppConfig, logger
 
 load_dotenv()
+
+# Get tracer for manual span creation
+tracer = trace.get_tracer(__name__)
 
 
 class HealthcareRetriever:
@@ -439,50 +442,32 @@ class HealthcareRetriever:
         LangChain-compatible synchronous invoke.
         """
         config = config or {}
-        callbacks = config.get("callbacks", []) if config else None
-        run_manager = config.get("run_manager") if config else None
-        if run_manager:
-            uuid_str = run_manager.run_id
-        else:
-            logger.warning("No run_manager provided, generating new UUID for the run.")
-            uuid_str = str(uuid.uuid4())
 
-        try:
-            logger.info(f"Processing sync healthcare query: {query}")
-            if callbacks:
-                for callback in callbacks:
-                    if hasattr(callback, "on_retriever_start"):
-                        callback.on_retriever_start(
-                            serialized={"name": "DSM-5"}, query=query, run_id=uuid_str
-                        )
+        # Create span to link with parent agent trace
+        with tracer.start_as_current_span(
+            "DSM5_Healthcare",
+            attributes={
+                "query": query,
+                "top_k": config.get("top_k", 10),
+            },
+        ):
+            try:
+                logger.info(f"Processing sync healthcare query: {query}")
 
-            results = self.hybrid_search(
-                query=query,
-                top_k=config.get("top_k", 10),
-                rrf_k=config.get("rrf_k", 60),
-                keyword_weight=config.get("keyword_weight", 1.0),
-                vector_weight=config.get("vector_weight", 1.2),
-                include_context=config.get("include_context", False),
-            )
+                results = self.hybrid_search(
+                    query=query,
+                    top_k=config.get("top_k", 10),
+                    rrf_k=config.get("rrf_k", 60),
+                    keyword_weight=config.get("keyword_weight", 1.0),
+                    vector_weight=config.get("vector_weight", 1.2),
+                    include_context=config.get("include_context", False),
+                )
 
-            document = [
-                {"chunk_idx": item.get("chunk_idx"), "title": item.get("title")}
-                for item in results
-            ]
-            if callbacks:
-                for callback in callbacks:
-                    if hasattr(callback, "on_retriever_end"):
-                        callback.on_retriever_end(documents=document, run_id=uuid_str)
+                return results
 
-            return results
-
-        except Exception as e:
-            logger.error(f"Error during sync process healhcrare: {str(e)}")
-            if callbacks:
-                for callback in callbacks:
-                    if hasattr(callback, "on_retriever_error"):
-                        callback.on_retriever_error(error=e, run_id=uuid_str)
-            raise ValueError(f"Error retrieving DSM-5 information: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error during sync process healhcrare: {str(e)}")
+                raise ValueError(f"Error retrieving DSM-5 information: {str(e)}")
 
     async def ainvoke(
         self, query: str, config: Optional[Dict[str, Any]] = None

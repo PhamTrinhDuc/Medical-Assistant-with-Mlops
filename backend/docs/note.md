@@ -45,3 +45,9 @@ sudo ./svc.sh start
 ```bash
 sudo ./svc.sh stop
 ```
+
+# Find class, function location in package
+```python
+ grep -R "AgentExecutor"   .venv/lib/python*/site-package
+s/langchain*
+```

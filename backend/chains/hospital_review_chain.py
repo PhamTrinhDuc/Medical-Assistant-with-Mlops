@@ -1,5 +1,5 @@
-from langchain.chains.retrieval_qa.base import RetrievalQA
-from langchain.prompts import ChatPromptTemplate
+from langchain_classic.chains.retrieval_qa.base import RetrievalQA
+from langchain_classic.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import Neo4jVector
 
 from prompt.hospital_prompt import SYSTEM_PROMPT, TEXT_NODE_PROPERTIES, USER_PROMPT
