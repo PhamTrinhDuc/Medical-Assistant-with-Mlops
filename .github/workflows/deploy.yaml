@@ -84,9 +84,9 @@ jobs:
           image-ref: '${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}'
           format: 'table'
           exit-code: '1' # Làm fail CI nếu phát hiện lỗ hổng nghiêm trọng
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true # bỏ qua các lỗ hổng chưa có bản vá
+          vuln-type: 'os,library' # Chỉ quét lỗ hổng hệ điều hành và thư viện
+          severity: 'CRITICAL,HIGH' # Chỉ quan tâm lỗ hổng nghiêm trọng và cao
 
       - name: Scan Backend images with Trivy
         # if : github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -95,9 +95,9 @@ jobs:
           image-ref: '${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}'
           format: 'table'
           exit-code: '1' # Làm fail CI nếu phát hiện lỗ hổng nghiêm trọng
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true # bỏ qua các lỗ hổng chưa có bản vá
+          vuln-type: 'os,library' # Chỉ quét lỗ hổng hệ điều hành và thư viện
+          severity: 'CRITICAL,HIGH' # Chỉ quan tâm lỗ hổng nghiêm trọng và cao
 
       # - name: Push docker images to DockerHub 
         # if: github.event_name == 'push' && github.ref == 'refs/heads/main'

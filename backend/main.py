@@ -1,6 +1,7 @@
 import json
 import uuid
 import asyncio
+from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -86,27 +87,11 @@ def get_cypher_tool() -> CypherTool:
     return _tools_cache["cypher_tool"]
 
 
-def create_app() -> FastAPI:
-    """Application factory: creates and configures the FastAPI app."""
-    app = FastAPI(
-        title="DSM-5 & Hospital Chatbot",
-        description="RAG chatbot with hospital and DSM-5 data",
-    )
-    _setup_monitoring(app)
-    _setup_middlewares(app)
-
-    return app
-
-
-app = create_app()
-
-
 # Global state for service health
 _services_healthy = False
 
 
-@app.on_event("startup")
-async def startup_event():
+async def lifespan():
     """
     Startup event: Check external services before accepting requests.
     Tools will be initialized lazily on first use.
@@ -142,11 +127,26 @@ async def startup_event():
 
     logger.info("✅ Startup complete")
 
+    yield
 
-@app.on_event("shutdown")
-def shutdown():
     logger.info("Graceful shutdown started")
     logger.complete()
+
+
+def create_app() -> FastAPI:
+    """Application factory: creates and configures the FastAPI app."""
+    app = FastAPI(
+        title="DSM-5 & Hospital Chatbot",
+        description="RAG chatbot with hospital and DSM-5 data",
+        lifespan=lifespan,
+    )
+    _setup_monitoring(app)
+    _setup_middlewares(app)
+
+    return app
+
+
+app = create_app()
 
 
 @app.get("/")
