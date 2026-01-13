@@ -91,6 +91,7 @@ def get_cypher_tool() -> CypherTool:
 _services_healthy = False
 
 
+@asynccontextmanager
 async def lifespan():
     """
     Startup event: Check external services before accepting requests.
