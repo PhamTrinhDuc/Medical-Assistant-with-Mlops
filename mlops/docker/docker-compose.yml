@@ -37,7 +37,7 @@ services:
   
   jenkins:
     build: 
-      context: ./mlops/jenkins-custom
+      context: ./jenkins-custom
       dockerfile: Dockerfile
     image: duc8504/jenkins:lts-jdk17
     container_name: jenkins
