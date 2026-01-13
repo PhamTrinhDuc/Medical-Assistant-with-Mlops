@@ -82,7 +82,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with: 
           image-ref: | 
-            ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}
+            '${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}'
           format: 'table'
           exit-code: '1' # Làm fail CI nếu phát hiện lỗ hổng nghiêm trọng
           ignore-unfixed: true
@@ -94,7 +94,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with: 
           image-ref: | 
-            ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}
+            '${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}'
           format: 'table'
           exit-code: '1' # Làm fail CI nếu phát hiện lỗ hổng nghiêm trọng
           ignore-unfixed: true
