@@ -84,7 +84,7 @@ class DSM5RetrievalTool(BaseTool):
             formatted_results.append(formatted_item)
         return formatted_results
 
-    def _run(self, query: str, run_manager=None) -> str:
+    def _run(self, query: str) -> str:
         """
         Synchronous execution of DSM-5 retrieval.
 
@@ -103,7 +103,6 @@ class DSM5RetrievalTool(BaseTool):
                     "top_k": self.top_k,
                     "include_context": self.include_context,
                     "callbacks": self.callbacks,
-                    "run_manager": run_manager,
                 },
             )
             return self._format_output(results)
@@ -113,7 +112,7 @@ class DSM5RetrievalTool(BaseTool):
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-    async def _arun(self, query: str, run_manager=None) -> str:
+    async def _arun(self, query: str) -> str:
         """
         Asynchronous execution of DSM-5 retrieval.
 

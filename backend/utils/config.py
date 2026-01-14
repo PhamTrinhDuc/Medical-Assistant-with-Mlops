@@ -46,9 +46,11 @@ class AppConfig:
 
     JAEGER_ENDPOINT = os.getenv("JAEGER_ENDPOINT")
 
-    LANGFUSE_SECRET_KEY: str = os.getenv("LANGFUSE_SECRET_KEY")
-    LANGFUSE_PUBLIC_KEY: str = os.getenv("LANGFUSE_PUBLIC_KEY")
-    LANGFUSE_ENDPOINT: str = os.getenv("LANGFUSE_ENDPOINT")
+    # Phoenix Configuration
+    PHOENIX_ENDPOINT: str = os.getenv(
+        "PHOENIX_ENDPOINT", "http://localhost:6006/v1/traces"
+    )
+    PHOENIX_PROJECT_NAME: str = os.getenv("PHOENIX_PROJECT_NAME", APP_NAME)
 
     # PARAMETERS
     VECTOR_SIZE: int = 768

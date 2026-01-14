@@ -21,7 +21,7 @@ notebook
 chatbot.db
 *.html 
 .terraform
-
+langfuse_db_data
 
 # Distribution / packaging
 .Python

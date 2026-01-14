@@ -1,6 +1,7 @@
 import json
 import uuid
 import asyncio
+from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -15,7 +16,14 @@ from app.schemas import (
     UserLogin,
     UserRegister,
 )
-from mlops import monitor_endpoint, setup_metrics, setup_tracing
+from mlops import (
+    setup_phoenix_tracing,
+    shutdown_phoenix,
+    setup_tracing,
+    monitor_endpoint,
+    setup_metrics,
+)
+
 from tools import CypherTool
 from tools.health_tool import DSM5RetrievalTool
 from utils import AppConfig, logger, _check_external_services
@@ -86,27 +94,12 @@ def get_cypher_tool() -> CypherTool:
     return _tools_cache["cypher_tool"]
 
 
-def create_app() -> FastAPI:
-    """Application factory: creates and configures the FastAPI app."""
-    app = FastAPI(
-        title="DSM-5 & Hospital Chatbot",
-        description="RAG chatbot with hospital and DSM-5 data",
-    )
-    _setup_monitoring(app)
-    _setup_middlewares(app)
-
-    return app
-
-
-app = create_app()
-
-
 # Global state for service health
 _services_healthy = False
 
 
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """
     Startup event: Check external services before accepting requests.
     Tools will be initialized lazily on first use.
@@ -115,12 +108,20 @@ async def startup_event():
 
     logger.info("🚀 Starting application...")
 
+    # Setup Phoenix tracing FIRST before anything else
+    logger.info("🔥 Initializing Phoenix tracing...")
+    phoenix_ok = setup_phoenix_tracing()
+    if phoenix_ok:
+        logger.info("✅ Phoenix tracing initialized successfully")
+    else:
+        logger.warning("⚠️ Phoenix tracing failed to initialize - monitoring disabled")
+
     # Check external services
     logger.info("🔍 Checking external services...")
     service_status = await _check_external_services()
 
     # Determine if critical services are healthy
-    critical_services = ["elasticsearch", "neo4j", "redis", "langfuse"]
+    critical_services = ["elasticsearch", "neo4j", "redis", "phoenix"]
     all_healthy = all(service_status.get(svc, False) for svc in critical_services)
 
     if all_healthy:
@@ -142,11 +143,27 @@ async def startup_event():
 
     logger.info("✅ Startup complete")
 
+    yield
 
-@app.on_event("shutdown")
-def shutdown():
     logger.info("Graceful shutdown started")
+    shutdown_phoenix()
     logger.complete()
+
+
+def create_app() -> FastAPI:
+    """Application factory: creates and configures the FastAPI app."""
+    app = FastAPI(
+        title="DSM-5 & Hospital Chatbot",
+        description="RAG chatbot with hospital and DSM-5 data",
+        lifespan=lifespan,
+    )
+    _setup_monitoring(app)
+    _setup_middlewares(app)
+
+    return app
+
+
+app = create_app()
 
 
 @app.get("/")

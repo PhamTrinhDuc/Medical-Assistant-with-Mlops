@@ -1,10 +1,4 @@
-from pydantic import BaseModel
-
-
-class QueryRequest(BaseModel):
-    query: str
-    user_id: str = "default"
-    session_id: str = None
+from pydantic import BaseModel, ConfigDict
 
 
 # Auth models
@@ -16,6 +10,13 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     username: str
     password: str
+
+
+# Chat models
+class QueryRequest(BaseModel):
+    query: str
+    user_id: str = "default"
+    session_id: str = None
 
 
 class MessageCreate(BaseModel):
@@ -33,8 +34,9 @@ class MessageResponse(BaseModel):
     content: str
     created_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True
+    )  # chuyển đổi từ đối tượng ORM sang Pydantic model (Pydantic v2)
 
 
 class ConversationResponse(BaseModel):
@@ -44,5 +46,6 @@ class ConversationResponse(BaseModel):
     updated_at: str
     message_count: int = 0
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True
+    )  # chuyển đổi từ đối tượng ORM sang Pydantic model (Pydantic v2)

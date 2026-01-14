@@ -5,7 +5,7 @@ from utils import logger, AppConfig
 from urllib.parse import urlparse
 from elasticsearch import Elasticsearch
 from neo4j import GraphDatabase
-from langfuse import Langfuse
+import httpx
 
 
 def _is_jaeger_available(endpoint: str, timeout: int = 2):
@@ -65,24 +65,22 @@ async def _check_external_services() -> Dict[str, bool]:
         logger.error(f"❌ Redis connection error: {e}")
         status["redis"] = False
 
-    # Check Langfuse
+    # Check Phoenix
     try:
-        langfuse = Langfuse(
-            public_key=AppConfig.LANGFUSE_PUBLIC_KEY,
-            secret_key=AppConfig.LANGFUSE_SECRET_KEY,
-            host=AppConfig.LANGFUSE_ENDPOINT,
-        )
-
-        result = langfuse.auth_check()
-        if result:
-            logger.info("✅ Langfuse is healthy")
-            status["langfuse"] = True
-        else:
-            logger.warning("❌ Langfuse auth check failed")
-            status["langfuse"] = False
-
-    except Exception:
-        logger.error("❌ Langfuse connection error")
-        status["langfuse"] = False
+        phoenix_url = AppConfig.PHOENIX_ENDPOINT.replace("/v1/traces", "")
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{phoenix_url}/healthz", timeout=5.0)
+            if response.status_code == 200:
+                logger.info("✅ Phoenix is healthy")
+                status["phoenix"] = True
+            else:
+                logger.warning(
+                    f"❌ Phoenix health check failed with status {response.status_code}"
+                )
+                status["phoenix"] = False
+    except Exception as e:
+        logger.warning(f"⚠️ Phoenix connection error: {e}")
+        logger.warning("Phoenix monitoring will be disabled")
+        status["phoenix"] = False
 
     return status

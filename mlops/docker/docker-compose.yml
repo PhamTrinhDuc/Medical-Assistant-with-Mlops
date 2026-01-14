@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 
 services:
 
@@ -37,7 +37,7 @@ services:
   
   jenkins:
     build: 
-      context: ./mlops/jenkins-custom
+      context: ./jenkins-custom
       dockerfile: Dockerfile
     image: duc8504/jenkins:lts-jdk17
     container_name: jenkins
@@ -321,63 +321,73 @@ services:
     networks:
       - chatbot-network
 
-  langfuse-server:
-    image: langfuse/langfuse:2
-    depends_on:
-      db:
-        condition: service_healthy
+  phoenix:
+    image: arizephoenix/phoenix:latest  # You can pin a specific version, e.g., :0.5.0
     ports:
-      - 3001:3000 # Map port 3000 of the container to port 3001 on the host
+      - "6006:6006"  # Phoenix UI
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/langfuse
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=mysecret-change-this-in-production
-      - SALT=mysalt-change-this-in-production
-      - ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
-      - TELEMETRY_ENABLED=false
-      - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=true
-      # - LANGFUSE_ENABLE_SIGNUP=false # uncomment to disable signups
-    networks:
-      - chatbot-network
-    # Jiyuu - duc78240@gmail.com - duc8504@@
-
-  db:
-    image: postgres:12.6
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 3s
-      timeout: 3s
-      retries: 10
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=langfuse
-    ports:
-      - 5432:5432
+      PHOENIX_USERNAME: admin
+      PHOENIX_PASSWORD: admin
     volumes:
-      - ./langfuse_db_data:/var/lib/postgresql/data
-    networks:
-      - chatbot-network
+      - phoenix_data:/app/data  # Persistent storage for logs, configs, etc.
 
-  db-init:
-    image: postgres:12.6
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - PGHOST=db
-      - PGPORT=5432
-      - PGUSER=postgres
-      - PGPASSWORD=postgres
-    command: 
-      - bash
-      - -c
-      - |
-        psql -d postgres -c "CREATE DATABASE langfuse;" 2>/dev/null || true
-    networks:
-      - chatbot-network
+  # langfuse-server:
+  #   image: langfuse/langfuse:2
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   ports:
+  #     - 3001:3000 # Map port 3000 of the container to port 3001 on the host
+  #   environment:
+  #     - NODE_ENV=production
+  #     - DATABASE_URL=postgresql://postgres:postgres@db:5432/langfuse
+  #     - NEXTAUTH_URL=http://localhost:3001
+  #     - NEXTAUTH_SECRET=mysecret-change-this-in-production
+  #     - SALT=mysalt-change-this-in-production
+  #     - ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
+  #     - TELEMETRY_ENABLED=false
+  #     - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=true
+  #     # - LANGFUSE_ENABLE_SIGNUP=false # uncomment to disable signups
+  #   networks:
+  #     - chatbot-network
+  #   # Jiyuu - duc78240@gmail.com - duc8504@@
+
+  # db:
+  #   image: postgres:12.6
+  #   restart: always
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 3s
+  #     timeout: 3s
+  #     retries: 10
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=langfuse
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - ./langfuse_db_data:/var/lib/postgresql/data
+  #   networks:
+  #     - chatbot-network
+
+  # db-init:
+  #   image: postgres:12.6
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   environment:
+  #     - PGHOST=db
+  #     - PGPORT=5432
+  #     - PGUSER=postgres
+  #     - PGPASSWORD=postgres
+  #   command: 
+  #     - bash
+  #     - -c
+  #     - |
+  #       psql -d postgres -c "CREATE DATABASE langfuse;" 2>/dev/null || true
+  #   networks:
+  #     - chatbot-network
       
 volumes:
   neo4j_data:
@@ -409,7 +419,8 @@ volumes:
   elasticsearch:
     name: source_es_data
     external: true
-
+  phoenix_data:
+    name: phoenix_data
 
 networks:
   chatbot-network:

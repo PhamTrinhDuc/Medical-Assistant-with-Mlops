@@ -34,3 +34,20 @@ docker tag ai-agent:1.0 username/ai-agent:1.0
 # 3. Push to dockerhub 
 docker push username/ai-agent:1.0
 ```
+
+# Runner Github-Action 
+- Once you have installed the Runner as a Service (using ./svc.sh install), you no longer need to run any commands each time you want to start it. Ubuntu's systemd will automatically manage it
+```bash
+sudo ./svc.sh install
+sudo ./svc.sh start
+```
+- When you want to maintain the server and don't want to receive jobs from GitHub.
+```bash
+sudo ./svc.sh stop
+```
+
+# Find class, function location in package
+```python
+ grep -R "AgentExecutor"   .venv/lib/python*/site-package
+s/langchain*
+```
