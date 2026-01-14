@@ -29,21 +29,21 @@ autoscaling:
 
 livenessProbe:
   httpGet:
-    path: /health
+    path: /health/liveness
     port: http
   initialDelaySeconds: 120 # for latency backend
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
 
-readinessProbe:
-  httpGet:
-    path: /health
-    port: http
-  initialDelaySeconds: 30
-  periodSeconds: 5
-  timeoutSeconds: 3
-  failureThreshold: 2
+# readinessProbe:
+#   httpGet:
+#     path: /health/readiness
+#     port: http
+#   initialDelaySeconds: 30
+#   periodSeconds: 5
+#   timeoutSeconds: 3
+#   failureThreshold: 2
 
 env:
   ELS_HOST: "elasticsearch"
