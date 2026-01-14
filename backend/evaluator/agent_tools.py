@@ -29,7 +29,9 @@ def evaluate_tools(agent: HospitalRAGAgent, eval_dataset: pd.DataFrame) -> pd.Da
 
         query = row["question"]
         label = (
-            row["category"] if isinstance(row["category"], list) else [row["category"]]
+            row["category"].lower()
+            if isinstance(row["category"], list)
+            else [row["category"]]
         )
 
         result = agent.get_tools_call(query)
@@ -37,7 +39,7 @@ def evaluate_tools(agent: HospitalRAGAgent, eval_dataset: pd.DataFrame) -> pd.Da
             {
                 "query": query,
                 "tool_label": label,
-                "tool_calls": result["tool_calls"],
+                "tool_calls": [tool.lower() for tool in result["tool_calls"]],
                 "score": 1 if label == result["tool_calls"] else 0,
             }
         )
@@ -54,7 +56,7 @@ if __name__ == "__main__":
         user_id="test_user",
     )
 
-    eval_dataset = pd.read_csv(AGENT_DATASET_EVAL_PATH).head()
+    eval_dataset = pd.read_csv(AGENT_DATASET_EVAL_PATH)
 
     df_results = evaluate_tools(agent=agent, eval_dataset=eval_dataset)
     df_results.to_csv(AGENT_RESULT_EVAL_PATH, index=False)

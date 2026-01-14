@@ -448,7 +448,7 @@ class HealthcareRetriever:
                     query=query,
                     top_k=config.get("top_k", 10),
                     rrf_k=config.get("rrf_k", 60),
-                    keyword_weight=config.get("keyword_weight", 1.0),
+                    keyword_weight=config.get("keyword_weight", 1.2),
                     vector_weight=config.get("vector_weight", 1.0),
                     num_candidates=config.get("num_candidates", 50),
                     include_context=config.get("include_context", False),

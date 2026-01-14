@@ -133,9 +133,8 @@ class HospitalRAGAgent:
                     name="Availability",
                     func=get_most_available_hospital,
                     description="""Use when you need to find out which hospital has the shortest \
-                    wait time. This tool does not have any information about aggregate or historical wait times. \
-                    This tool returns a dictionary with the hospital name as the key and the wait time in minutes \
-                    as the value.""",
+                    wait time. This tool does not have any information about aggregate or historical wait times. \ 
+                    This tool returns a dictionary with the hospital name as the key and the wait time in minutes as the value.""",
                 ),
             ]
         return self._tools
