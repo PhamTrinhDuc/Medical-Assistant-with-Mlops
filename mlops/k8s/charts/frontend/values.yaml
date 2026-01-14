@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: duc8504/ai-agent-frontend
   tag: "latest"
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 
 service: 
   type: ClusterIP 
