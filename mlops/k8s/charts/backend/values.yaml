@@ -36,14 +36,14 @@ livenessProbe:
   timeoutSeconds: 5
   failureThreshold: 3
 
-# readinessProbe:
-#   httpGet:
-#     path: /health/readiness
-#     port: http
-#   initialDelaySeconds: 30
-#   periodSeconds: 5
-#   timeoutSeconds: 3
-#   failureThreshold: 2
+readinessProbe:
+  httpGet:
+    path: /health/liveness # fixed typo
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 2
 
 env:
   ELS_HOST: "elasticsearch"
