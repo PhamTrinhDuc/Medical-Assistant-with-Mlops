@@ -28,6 +28,7 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 
 livenessProbe:
+  enabled: false
   httpGet:
     path: /health/liveness
     port: http
@@ -37,13 +38,14 @@ livenessProbe:
   failureThreshold: 3
 
 readinessProbe:
+  enabled: false
   httpGet:
-    path: /health/liveness # fixed typo
+    path: /health/liveness
     port: http
-  initialDelaySeconds: 30
-  periodSeconds: 5
-  timeoutSeconds: 3
-  failureThreshold: 2
+  initialDelaySeconds: 120
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
 
 env:
   ELS_HOST: "elasticsearch"
