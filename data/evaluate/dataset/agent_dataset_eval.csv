@@ -49,53 +49,53 @@ question_id,question,category,difficulty
 48,Có bao nhiêu bệnh nhân nữ trong hệ thống?,Graph,easy
 49,Liệt kê các ca khám có thời gian nằm viện trên 20 ngày,Graph,hard
 50,Tìm bệnh viện nào có nhiều ca khám nhất,Graph,hard
-51,Bệnh nhân phải chờ bao lâu để được nhận vào bệnh viện?,Waits,medium
-52,Thời gian chờ đợi trung bình cho các ca khám khẩn cấp là bao nhiêu?,Waits,hard
-53,Có sự khác biệt về thời gian chờ đợi giữa các loại hình nhập viện không?,Waits,hard
-54,Bệnh viện nào có thời gian chờ đợi ngắn nhất?,Waits,hard
-55,Trong tháng nào có nhiều ca nhập viện nhất và điều này ảnh hưởng đến thời gian chờ như thế nào?,Waits,hard
-56,Thời gian nằm viện trung bình của bệnh nhân là bao lâu?,Waits,medium
-57,Bệnh nhân nào có thời gian nằm viện lâu nhất?,Waits,medium
-58,So sánh thời gian điều trị giữa các ca Emergency và Elective,Waits,hard
-59,Có bệnh nhân nào phàn nàn về thời gian chờ xét nghiệm trong đánh giá không?,Waits,medium
-60,Thời gian từ khi nhập viện đến khi xuất viện trung bình cho mỗi loại nhập viện,Waits,hard
-61,Tìm các ca khám có thời gian nằm viện dưới 3 ngày,Waits,medium
-62,Bệnh viện nào có thời gian điều trị nhanh nhất cho các ca khẩn cấp?,Waits,hard
-63,Có mối quan hệ nào giữa thời gian chờ đợi và mức độ hài lòng của bệnh nhân không?,Waits,hard
-64,Những tháng nào trong năm có thời gian chờ đợi cao nhất?,Waits,hard
-65,Tính thời gian nằm viện trung bình theo từng bệnh viện,Waits,hard
-66,Có bao nhiêu ca khám được xuất viện trong vòng 24 giờ?,Waits,medium
-67,Thời gian chờ đợi có ảnh hưởng đến kết quả điều trị không?,Waits,hard
-68,So sánh thời gian điều trị giữa các bang khác nhau,Waits,hard
-69,Bác sĩ nào có thời gian điều trị bệnh nhân nhanh nhất?,Waits,hard
-70,Tìm các ca khám vẫn đang mở (OPEN) đã kéo dài bao lâu,Waits,medium
-71,Rối loạn phát triển thần kinh là gì?,dsm5,easy
-72,Các tiêu chuẩn chẩn đoán rối loạn phát triển trí tuệ là gì?,dsm5,medium
-73,Phân biệt rối loạn phát triển trí tuệ với rối loạn phổ tự kỷ như thế nào?,dsm5,hard
-74,DSM-5 là gì và được sử dụng để làm gì?,dsm5,easy
-75,Mã số của rối loạn phát triển trí tuệ trong DSM-5 là gì?,dsm5,easy
-76,Rối loạn phát triển trí tuệ ảnh hưởng đến những chức năng nào?,dsm5,medium
-77,Khi nào rối loạn phát triển trí tuệ thường bắt đầu xuất hiện?,dsm5,medium
-78,Có những mức độ nghiêm trọng nào của rối loạn phát triển trí tuệ?,dsm5,medium
-79,Các rối loạn giao tiếp được phân loại như thế nào trong DSM-5?,dsm5,medium
-80,Tiêu chuẩn chẩn đoán rối loạn phổ tự kỷ theo DSM-5 là gì?,dsm5,hard
-81,Sự khác biệt giữa rối loạn thần kinh - nhận thức chủ yếu và nhẹ là gì?,dsm5,hard
-82,Làm thế nào để đánh giá chức năng thích ứng trong rối loạn phát triển trí tuệ?,dsm5,hard
-83,Rối loạn học tập đặc hiệu là gì và có những loại nào?,dsm5,medium
-84,Tiêu chuẩn chẩn đoán ADHD theo DSM-5 như thế nào?,dsm5,medium
-85,Có những rối loạn nào thuộc nhóm rối loạn phát triển thần kinh?,dsm5,medium
-86,Chẩn đoán phân biệt rối loạn phát triển trí tuệ bao gồm những rối loạn nào?,dsm5,hard
-87,Test trí tuệ chuẩn đóng vai trò gì trong chẩn đoán rối loạn phát triển trí tuệ?,dsm5,medium
-88,Các lĩnh vực chức năng thích ứng được đánh giá trong rối loạn phát triển trí tuệ là gì?,dsm5,medium
-89,Rối loạn vận động có được đề cập trong DSM-5 không?,dsm5,medium
-90,Làm thế nào để phân biệt rối loạn phát triển trí tuệ với chậm phát triển toàn diện?,dsm5,hard
-91,Rối loạn tic là gì và được phân loại như thế nào trong DSM-5?,dsm5,medium
-92,Có cần đánh giá lâm sàng để chẩn đoán rối loạn phát triển trí tuệ không?,dsm5,easy
-93,Sự hỗ trợ thường xuyên có vai trò gì trong rối loạn phát triển trí tuệ?,dsm5,medium
-94,Rối loạn ngôn ngữ và rối loạn âm thanh lời nói khác nhau như thế nào?,dsm5,hard
-95,DSM-5 được dịch và hiệu đính bởi ai tại Việt Nam?,dsm5,easy
-96,Rối loạn phát triển trí tuệ có thể xuất hiện cùng với các rối loạn khác không?,dsm5,medium
-97,Các hoạt động thường ngày bị ảnh hưởng trong rối loạn phát triển trí tuệ bao gồm những gì?,dsm5,medium
-98,Tiêu chuẩn A trong chẩn đoán rối loạn phát triển trí tuệ đề cập đến gì?,dsm5,easy
-99,Làm thế nào để xác định mức độ nghiêm trọng của rối loạn phát triển trí tuệ?,dsm5,hard
-100,Rối loạn phát triển thần kinh có thể điều trị được không và phương pháp nào được khuyến nghị?,dsm5,hard
+51,Thời gian chờ đợi hiện tại ở bệnh viện Wallace-Hamilton là bao lâu?,Waits,easy
+52,Hiện tại tôi phải chờ bao lâu tại bệnh viện Jordan Inc?,Waits,easy
+53,Cho tôi biết thời gian chờ hiện tại ở bệnh viện Leach and Sons.,Waits,easy
+54,Bệnh viện nào có thời gian chờ đợi ngắn nhất hiện nay?,Availability,medium
+55,Tìm cho tôi bệnh viện đang trống nhất để đến khám ngay.,Availability,medium
+56,Thời gian nằm viện trung bình của bệnh nhân là bao lâu?,Graph,medium
+57,Bệnh nhân nào có thời gian nằm viện lâu nhất?,Graph,medium
+58,So sánh thời gian điều trị giữa các ca Emergency và Elective,Graph,hard
+59,Có bệnh nhân nào phàn nàn về thời gian chờ xét nghiệm trong đánh giá không?,Experiences,medium
+60,Thời gian từ khi nhập viện đến khi xuất viện trung bình cho mỗi loại nhập viện,Graph,hard
+61,Tìm các ca khám có thời gian nằm viện dưới 3 ngày,Graph,medium
+62,Bệnh viện nào có thời gian điều trị nhanh nhất cho các ca khẩn cấp?,Graph,hard
+63,Có mối quan hệ nào giữa thời gian chờ đợi và mức độ hài lòng của bệnh nhân không?,Experiences,hard
+64,Những tháng nào trong năm có thời gian đón tiếp bệnh nhân cao nhất?,Graph,hard
+65,Tính thời gian nằm viện trung bình theo từng bệnh viện,Graph,hard
+66,Có bao nhiêu ca khám được xuất viện trong vòng 24 giờ?,Graph,medium
+67,Thời gian chờ đợi có ảnh hưởng đến kết quả điều trị trong các đánh giá không?,Experiences,hard
+68,So sánh thời gian điều trị giữa các bang khác nhau,Graph,hard
+69,Bác sĩ nào có thời gian điều trị bệnh nhân nhanh nhất?,Graph,hard
+70,Tìm các ca khám vẫn đang mở (OPEN) đã kéo dài bao lâu,Graph,medium
+71,Rối loạn phát triển thần kinh là gì?,DSM5,easy
+72,Các tiêu chuẩn chẩn đoán rối loạn phát triển trí tuệ là gì?,DSM5,medium
+73,Phân biệt rối loạn phát triển trí tuệ với rối loạn phổ tự kỷ như thế nào?,DSM5,hard
+74,DSM-5 là gì và được sử dụng để làm gì?,DSM5,easy
+75,Mã số của rối loạn phát triển trí tuệ trong DSM-5 là gì?,DSM5,easy
+76,Rối loạn phát triển trí tuệ ảnh hưởng đến những chức năng nào?,DSM5,medium
+77,Khi nào rối loạn phát triển trí tuệ thường bắt đầu xuất hiện?,DSM5,medium
+78,Có những mức độ nghiêm trọng nào của rối loạn phát triển trí tuệ?,DSM5,medium
+79,Các rối loạn giao tiếp được phân loại như thế nào trong DSM-5?,DSM5,medium
+80,Tiêu chuẩn chẩn đoán rối loạn phổ tự kỷ theo DSM-5 là gì?,DSM5,hard
+81,Sự khác biệt giữa rối loạn thần kinh - nhận thức chủ yếu và nhẹ là gì?,DSM5,hard
+82,Làm thế nào để đánh giá chức năng thích ứng trong rối loạn phát triển trí tuệ?,DSM5,hard
+83,Rối loạn học tập đặc hiệu là gì và có những loại nào?,DSM5,medium
+84,Tiêu chuẩn chẩn đoán ADHD theo DSM-5 như thế nào?,DSM5,medium
+85,Có những rối loạn nào thuộc nhóm rối loạn phát triển thần kinh?,DSM5,medium
+86,Chẩn đoán phân biệt rối loạn phát triển trí tuệ bao gồm những rối loạn nào?,DSM5,hard
+87,Test trí tuệ chuẩn đóng vai trò gì trong chẩn đoán rối loạn phát triển trí tuệ?,DSM5,medium
+88,Các lĩnh vực chức năng thích ứng được đánh giá trong rối loạn phát triển trí tuệ là gì?,DSM5,medium
+89,Rối loạn vận động có được đề cập trong DSM-5 không?,DSM5,medium
+90,Làm thế nào để phân biệt rối loạn phát triển trí tuệ với chậm phát triển toàn diện?,DSM5,hard
+91,Rối loạn tic là gì và được phân loại như thế nào trong DSM-5?,DSM5,medium
+92,Có cần đánh giá lâm sàng để chẩn đoán rối loạn phát triển trí tuệ không?,DSM5,easy
+93,Sự hỗ trợ thường xuyên có vai trò gì trong rối loạn phát triển trí tuệ?,DSM5,medium
+94,Rối loạn ngôn ngữ và rối loạn âm thanh lời nói khác nhau như thế nào?,DSM5,hard
+95,DSM-5 được dịch và hiệu đính bởi ai tại Việt Nam?,DSM5,easy
+96,Rối loạn phát triển trí tuệ có thể xuất hiện cùng với các rối loạn khác không?,DSM5,medium
+97,Các hoạt động thường ngày bị ảnh hưởng trong rối loạn phát triển trí tuệ bao gồm những gì?,DSM5,medium
+98,Tiêu chuẩn A trong chẩn đoán rối loạn phát triển trí tuệ đề cập đến gì?,DSM5,easy
+99,Làm thế nào để xác định mức độ nghiêm trọng của rối loạn phát triển trí tuệ?,DSM5,hard
+100,Rối loạn phát triển thần kinh có thể điều trị được không và phương pháp nào được khuyến nghị?,DSM5,hard

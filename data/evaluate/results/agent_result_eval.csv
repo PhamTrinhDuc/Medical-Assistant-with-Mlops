@@ -1,0 +1,101 @@
+query,tool_label,tool_calls,score
+Bệnh nhân nào đã đưa ra đánh giá tích cực nhất về bệnh viện Wallace-Hamilton?,['Experiences'],['experiences'],1
+Có bao nhiêu bệnh nhân phàn nàn về tiếng ồn trong bệnh viện?,['Experiences'],['experiences'],1
+Những bác sĩ nào nhận được đánh giá tốt nhất từ bệnh nhân?,['Experiences'],['experiences'],1
+Bệnh viện nào có nhiều đánh giá tiêu cực nhất?,['Experiences'],['graph'],0
+Những lời phàn nàn phổ biến nhất của bệnh nhân về bệnh viện là gì?,['Experiences'],['experiences'],1
+Có bệnh nhân nào khen ngợi về sự sạch sẽ của cơ sở y tế không?,['Experiences'],['experiences'],1
+Tìm những đánh giá có đề cập đến vấn đề chờ đợi quá lâu để nhận kết quả xét nghiệm,['Experiences'],['experiences'],1
+Bệnh nhân nào đã để lại đánh giá về việc giao tiếp kém của đội ngũ y tế?,['Experiences'],['experiences'],1
+Những đánh giá nào đề cập đến vấn đề bãi đậu xe của bệnh viện?,['Experiences'],['experiences'],1
+Tìm những bệnh nhân cảm thấy hài lòng với việc giáo dục bệnh nhân về chẩn đoán và điều trị,['Experiences'],['experiences'],1
+Có bác sĩ nào bị phàn nàn trong các đánh giá không?,['Experiences'],['experiences'],1
+Những đánh giá nào đề cập đến tình trạng cơ sở vật chất lỗi thời?,['Experiences'],['experiences'],1
+Bệnh viện nào được khen ngợi nhiều nhất về đội ngũ y tế chu đáo?,['Experiences'],['experiences'],1
+Tìm các đánh giá có điểm số cao nhất (nếu có),['Experiences'],['experiences'],1
+Những bệnh nhân nào cảm thấy bị thiếu thông tin trong quá trình điều trị?,['Experiences'],['experiences'],1
+So sánh đánh giá của bệnh nhân về bệnh viện ở Florida và North Carolina,['Experiences'],['experiences'],1
+Có bệnh nhân nào đề cập đến vấn đề an toàn bệnh nhân không?,['Experiences'],['experiences'],1
+Tìm những đánh giá có nội dung trái ngược (khen cả khen và chê),['Experiences'],['experiences'],1
+Những từ khóa nào xuất hiện nhiều nhất trong các đánh giá tiêu cực?,['Experiences'],['experiences'],1
+Liệt kê các đánh giá của bệnh nhân nữ về trải nghiệm tại bệnh viện,['Experiences'],['experiences'],1
+Có bao nhiêu bệnh nhân trong hệ thống?,['Graph'],['graph'],1
+Liệt kê tên của 10 bác sĩ có mức lương cao nhất,['Graph'],['graph'],1
+Tìm tất cả các bệnh nhân có nhóm máu O+,['Graph'],['graph'],1
+Có bao nhiêu ca khám bệnh đang ở trạng thái OPEN?,['Graph'],['graph'],1
+Tính tổng số tiền thanh toán của tất cả các lần khám bệnh,['Graph'],['graph'],1
+Tìm bệnh nhân trẻ tuổi nhất trong hệ thống,['Graph'],['graph'],1
+Liệt kê tất cả các bệnh viện ở bang Florida,['Graph'],['graph'],1
+Có bao nhiêu bác sĩ tốt nghiệp từ Johns Hopkins University School of Medicine?,['Graph'],['graph'],1
+Tìm những bệnh nhân đã khám bệnh nhiều hơn 3 lần,['Graph'],['graph'],1
+Bác sĩ nào đã điều trị nhiều bệnh nhân nhất?,['Graph'],['graph'],1
+Tìm các ca khám có kết quả xét nghiệm là 'Abnormal',['Graph'],['graph'],1
+Liệt kê tất cả các công ty bảo hiểm trong hệ thống,['Graph'],['graph'],1
+Tìm bệnh nhân nam có ngày sinh từ năm 1990 trở về sau,['Graph'],['graph'],1
+Có bao nhiêu ca nhập viện khẩn cấp (Emergency)?,['Graph'],['graph'],1
+Tính số tiền thanh toán trung bình cho mỗi lần khám,['Graph'],['graph'],1
+Tìm tất cả các bác sĩ sinh năm 1980 trở về sau,['Graph'],['graph'],1
+Liệt kê các bệnh nhân đã khám tại bệnh viện Wallace-Hamilton,['Graph'],['graph'],1
+Có bao nhiêu ca khám được thanh toán bởi UnitedHealthcare?,['Graph'],['graph'],1
+Tìm các chẩn đoán chính (primary_diagnosis) phổ biến nhất,['Graph'],['graph'],1
+Liệt kê 5 bệnh viện có doanh thu cao nhất từ các ca khám,['Graph'],['graph'],1
+Tìm bệnh nhân có số tiền thanh toán cao nhất cho một lần khám,['Graph'],['graph'],1
+Có bao nhiêu bác sĩ tốt nghiệp năm 2010 trở về sau?,['Graph'],['graph'],1
+Tìm tất cả các ca khám có triệu chứng liên quan đến 'cough',['Graph'],['graph'],1
+Liệt kê các bệnh nhân đang được điều trị (visit_status = OPEN),['Graph'],['graph'],1
+Bác sĩ nào có mức lương thấp nhất?,['Graph'],['graph'],1
+Tính tổng doanh thu của mỗi bệnh viện,['Graph'],['graph'],1
+Tìm các ca khám diễn ra trong tháng 1 năm 2023,['Graph'],['graph'],1
+Có bao nhiêu bệnh nhân nữ trong hệ thống?,['Graph'],['graph'],1
+Liệt kê các ca khám có thời gian nằm viện trên 20 ngày,['Graph'],['graph'],1
+Tìm bệnh viện nào có nhiều ca khám nhất,['Graph'],['graph'],1
+Thời gian chờ đợi hiện tại ở bệnh viện Wallace-Hamilton là bao lâu?,['Waits'],['waits'],1
+Hiện tại tôi phải chờ bao lâu tại bệnh viện Jordan Inc?,['Waits'],['waits'],1
+Cho tôi biết thời gian chờ hiện tại ở bệnh viện Leach and Sons.,['Waits'],['waits'],1
+Bệnh viện nào có thời gian chờ đợi ngắn nhất hiện nay?,['Availability'],['availability'],1
+Tìm cho tôi bệnh viện đang trống nhất để đến khám ngay.,['Availability'],['availability'],1
+Thời gian nằm viện trung bình của bệnh nhân là bao lâu?,['Graph'],['graph'],1
+Bệnh nhân nào có thời gian nằm viện lâu nhất?,['Graph'],['graph'],1
+So sánh thời gian điều trị giữa các ca Emergency và Elective,['Graph'],[],0
+Có bệnh nhân nào phàn nàn về thời gian chờ xét nghiệm trong đánh giá không?,['Experiences'],['experiences'],1
+Thời gian từ khi nhập viện đến khi xuất viện trung bình cho mỗi loại nhập viện,['Graph'],['graph'],1
+Tìm các ca khám có thời gian nằm viện dưới 3 ngày,['Graph'],['graph'],1
+Bệnh viện nào có thời gian điều trị nhanh nhất cho các ca khẩn cấp?,['Graph'],['availability'],0
+Có mối quan hệ nào giữa thời gian chờ đợi và mức độ hài lòng của bệnh nhân không?,['Experiences'],['experiences'],1
+Những tháng nào trong năm có thời gian đón tiếp bệnh nhân cao nhất?,['Graph'],['graph'],1
+Tính thời gian nằm viện trung bình theo từng bệnh viện,['Graph'],['graph'],1
+Có bao nhiêu ca khám được xuất viện trong vòng 24 giờ?,['Graph'],['graph'],1
+Thời gian chờ đợi có ảnh hưởng đến kết quả điều trị trong các đánh giá không?,['Experiences'],['experiences'],1
+So sánh thời gian điều trị giữa các bang khác nhau,['Graph'],['graph'],1
+Bác sĩ nào có thời gian điều trị bệnh nhân nhanh nhất?,['Graph'],['availability'],0
+Tìm các ca khám vẫn đang mở (OPEN) đã kéo dài bao lâu,['Graph'],['graph'],1
+Rối loạn phát triển thần kinh là gì?,['DSM5'],[],0
+Các tiêu chuẩn chẩn đoán rối loạn phát triển trí tuệ là gì?,['DSM5'],['dsm5'],1
+Phân biệt rối loạn phát triển trí tuệ với rối loạn phổ tự kỷ như thế nào?,['DSM5'],['dsm5'],1
+DSM-5 là gì và được sử dụng để làm gì?,['DSM5'],[],0
+Mã số của rối loạn phát triển trí tuệ trong DSM-5 là gì?,['DSM5'],['dsm5'],1
+Rối loạn phát triển trí tuệ ảnh hưởng đến những chức năng nào?,['DSM5'],['dsm5'],1
+Khi nào rối loạn phát triển trí tuệ thường bắt đầu xuất hiện?,['DSM5'],['dsm5'],1
+Có những mức độ nghiêm trọng nào của rối loạn phát triển trí tuệ?,['DSM5'],['dsm5'],1
+Các rối loạn giao tiếp được phân loại như thế nào trong DSM-5?,['DSM5'],['dsm5'],1
+Tiêu chuẩn chẩn đoán rối loạn phổ tự kỷ theo DSM-5 là gì?,['DSM5'],['dsm5'],1
+Sự khác biệt giữa rối loạn thần kinh - nhận thức chủ yếu và nhẹ là gì?,['DSM5'],['dsm5'],1
+Làm thế nào để đánh giá chức năng thích ứng trong rối loạn phát triển trí tuệ?,['DSM5'],[],0
+Rối loạn học tập đặc hiệu là gì và có những loại nào?,['DSM5'],['dsm5'],1
+Tiêu chuẩn chẩn đoán ADHD theo DSM-5 như thế nào?,['DSM5'],['dsm5'],1
+Có những rối loạn nào thuộc nhóm rối loạn phát triển thần kinh?,['DSM5'],['dsm5'],1
+Chẩn đoán phân biệt rối loạn phát triển trí tuệ bao gồm những rối loạn nào?,['DSM5'],['dsm5'],1
+Test trí tuệ chuẩn đóng vai trò gì trong chẩn đoán rối loạn phát triển trí tuệ?,['DSM5'],[],0
+Các lĩnh vực chức năng thích ứng được đánh giá trong rối loạn phát triển trí tuệ là gì?,['DSM5'],['dsm5'],1
+Rối loạn vận động có được đề cập trong DSM-5 không?,['DSM5'],['dsm5'],1
+Làm thế nào để phân biệt rối loạn phát triển trí tuệ với chậm phát triển toàn diện?,['DSM5'],['dsm5'],1
+Rối loạn tic là gì và được phân loại như thế nào trong DSM-5?,['DSM5'],['dsm5'],1
+Có cần đánh giá lâm sàng để chẩn đoán rối loạn phát triển trí tuệ không?,['DSM5'],['dsm5'],1
+Sự hỗ trợ thường xuyên có vai trò gì trong rối loạn phát triển trí tuệ?,['DSM5'],['experiences'],0
+Rối loạn ngôn ngữ và rối loạn âm thanh lời nói khác nhau như thế nào?,['DSM5'],['dsm5'],1
+DSM-5 được dịch và hiệu đính bởi ai tại Việt Nam?,['DSM5'],[],0
+Rối loạn phát triển trí tuệ có thể xuất hiện cùng với các rối loạn khác không?,['DSM5'],['dsm5'],1
+Các hoạt động thường ngày bị ảnh hưởng trong rối loạn phát triển trí tuệ bao gồm những gì?,['DSM5'],['experiences'],0
+Tiêu chuẩn A trong chẩn đoán rối loạn phát triển trí tuệ đề cập đến gì?,['DSM5'],['dsm5'],1
+Làm thế nào để xác định mức độ nghiêm trọng của rối loạn phát triển trí tuệ?,['DSM5'],['dsm5'],1
+Rối loạn phát triển thần kinh có thể điều trị được không và phương pháp nào được khuyến nghị?,['DSM5'],['dsm5'],1
