@@ -2,7 +2,7 @@ replicaCount: 2
 
 image: 
   repository: duc8504/ai-agent-backend
-  tag: "1.0"
+  tag: "latest"
   # Quy định imagePullPolicy cho Pod: "IfNotPresent" = chỉ tải image nếu trên node chưa có.
   # Tiện để tránh tải lại cùng image; nếu tag image thay đổi (vd. "latest"), node có thể vẫn dùng bản cũ.
   pullPolicy: IfNotPresent
@@ -28,21 +28,19 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 
 livenessProbe:
-  enabled: false
   httpGet:
     path: /health/liveness
     port: http
-  initialDelaySeconds: 120 # for latency backend
+  initialDelaySeconds: 90 # for latency backend
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
 
 readinessProbe:
-  enabled: false
   httpGet:
     path: /health/liveness
     port: http
-  initialDelaySeconds: 120
+  initialDelaySeconds: 90
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
