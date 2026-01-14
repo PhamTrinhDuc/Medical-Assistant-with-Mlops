@@ -51,7 +51,7 @@ jobs:
           uv run pytest tests -v --tb=short --junit-xml=test-results.xml
 
       - name: Login to Docker Hub
-        # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -62,7 +62,7 @@ jobs:
         # 1. github.event_name == 'push': Đảm bảo code đã chính thức được đẩy lên (hoặc merge).
         # 2. github.ref == 'refs/heads/main': Chỉ thực hiện trên nhánh main bản chính thức.
         # -> Giúp tiết kiệm tài nguyên Docker Hub và tránh deploy nhầm code đang sửa dở.
-        # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           # Build & Push Backend
           cd backend
@@ -78,7 +78,7 @@ jobs:
           # Tag 'latest' dùng để kéo bản mới nhất nhanh chóng mà không cần nhớ mã SHA.
 
       - name: Scan Frontend images with Trivy
-        # if : github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if : github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: aquasecurity/trivy-action@master
         with: 
           image-ref: '${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}'
@@ -89,7 +89,7 @@ jobs:
           severity: 'CRITICAL,HIGH' # Chỉ quan tâm lỗ hổng nghiêm trọng và cao
 
       - name: Scan Backend images with Trivy
-        # if : github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if : github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: aquasecurity/trivy-action@master
         with: 
           image-ref: '${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}'
@@ -99,13 +99,13 @@ jobs:
           vuln-type: 'os,library' # Chỉ quét lỗ hổng hệ điều hành và thư viện
           severity: 'CRITICAL,HIGH' # Chỉ quan tâm lỗ hổng nghiêm trọng và cao
 
-      # - name: Push docker images to DockerHub 
-        # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        # run: |
-          # docker push ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}
-          # docker push ${{ env.BACKEND_IMAGE }}:${{ env.LATEST_TAG }}
-          # docker push ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}
-          # docker push ${{ env.FRONTEND_IMAGE }}:${{ env.LATEST_TAG }}
+      - name: Push docker images to DockerHub 
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker push ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.BACKEND_IMAGE }}:${{ env.LATEST_TAG }}
+          docker push ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.FRONTEND_IMAGE }}:${{ env.LATEST_TAG }}
 
       - name: Upload Test Results
         if: always()

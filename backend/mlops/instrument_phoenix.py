@@ -47,10 +47,7 @@ def setup_phoenix_tracing(
     - Tools (all tool calls)
     - Chains (all chain runs)
     - LLMs and Chat models
-    - Retrievers and VectorStores
     - Embeddings
-
-    No explicit callbacks needed!
 
     Args:
         endpoint: Phoenix OTLP endpoint (default: from AppConfig)
@@ -109,7 +106,7 @@ def get_phoenix_tracer(name: str = "langchain"):
     Returns:
         Tracer instance
     """
-    return trace_api.get_tracer(name)
+    return trace_api.get_tracer(instrumenting_module_name=name)
 
 
 def shutdown_phoenix():

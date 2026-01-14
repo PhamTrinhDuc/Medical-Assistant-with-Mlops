@@ -121,7 +121,7 @@ async def lifespan(app: FastAPI):
     service_status = await _check_external_services()
 
     # Determine if critical services are healthy
-    critical_services = ["elasticsearch", "neo4j", "redis"]
+    critical_services = ["elasticsearch", "neo4j", "redis", "phoenix"]
     all_healthy = all(service_status.get(svc, False) for svc in critical_services)
 
     if all_healthy:
