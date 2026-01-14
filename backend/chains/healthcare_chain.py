@@ -42,10 +42,10 @@ class HealthcareRetriever:
 
     def __init__(
         self,
-        model_name: Literal["openai", "google"] = "openai",
+        embed_model: Literal["openai", "google"] = "openai",
     ):
         self.index_name = AppConfig.INDEX_NAME_ELS
-        self.model_name = model_name
+        self.embed_model = embed_model
         self.vector_size = AppConfig.VECTOR_SIZE
 
         # Elasticsearch client
@@ -54,27 +54,32 @@ class HealthcareRetriever:
         )
 
         # Embedding client
-        if model_name == "google":
-            self.embed_model = AppConfig.GOOGLE_EMBEDDING
+        if self.embed_model == "google":
             genai.configure(api_key=AppConfig.GOOGLE_API_KEY)
-        else:
-            self.embed_model = AppConfig.OPENAI_EMBEDDING
+        elif self.embed_model == "openai":
             self.openai_client = OpenAI(api_key=AppConfig.OPENAI_API_KEY)
+        else:
+            raise ValueError(f"Unsupported embedding model: {self.embed_model}")
 
     def _get_embedding(self, text: str) -> List[float]:
         """Get embedding vector for query"""
-        if self.model_name == "openai":
+        if self.embed_model == "openai":
             response = self.openai_client.embeddings.create(
-                input=text, model=self.embed_model, dimensions=self.vector_size
+                input=text,
+                model=AppConfig.OPENAI_EMBEDDING,
+                dimensions=self.vector_size,
             )
             return response.data[0].embedding
-        else:
+        elif self.embed_model == "google":
             response = genai.embed_content(
                 content=text,
-                model=self.embed_model,
+                model=AppConfig.GOOGLE_EMBEDDING,
                 output_dimensionality=self.vector_size,
             )
             return response["embedding"]
+
+        else:
+            raise ValueError(f"Unsupported embedding model: {self.embed_model}")
 
     def _build_keyword_query(
         self,
@@ -102,9 +107,8 @@ class HealthcareRetriever:
                                 "query": query,
                                 "fields": [
                                     f"title^{boost_title}",
-                                    "sub_title^2",
                                     f"context_headers^{boost_context}",
-                                    "content",
+                                    # "content",
                                 ],
                                 "type": "best_fields",
                                 "operator": "or",
@@ -121,11 +125,11 @@ class HealthcareRetriever:
                             }
                         },
                         # Match trên parent_section_title để lấy context
-                        {
-                            "match": {
-                                "parent_section_title": {"query": query, "boost": 1.0}
-                            }
-                        },
+                        # {
+                        #     "match": {
+                        #         "parent_section_title": {"query": query, "boost": 1.0}
+                        #     }
+                        # },
                     ],
                     "minimum_should_match": 1,
                 }
@@ -144,7 +148,7 @@ class HealthcareRetriever:
         }
 
     def _build_vector_query(
-        self, query_vector: List[float], size: int = 20, num_candidates: int = 100
+        self, query_vector: List[float], size: int = 20, num_candidates: int = 50
     ) -> Dict:
         """
         Build kNN vector search query.
@@ -176,104 +180,49 @@ class HealthcareRetriever:
         self,
         keyword_hits: List[Dict],
         vector_hits: List[Dict],
-        k: int = 60,
-        keyword_weight: float = 1.0,
-        vector_weight: float = 1.0,
-    ) -> Dict[str, Dict]:
-        """
-        RRF với weighted scores.
-
-        Công thức: score = w1/(k + rank_keyword) + w2/(k + rank_vector)
-
-        Args:
-            k: RRF constant (60 là standard, cao hơn = ít phân biệt rank)
-            keyword_weight: Weight cho BM25 results
-            vector_weight: Weight cho semantic results
-        """
+        k: int,
+        keyword_weight: float,
+        vector_weight: float,
+    ):
         doc_scores = {}
         doc_data = {}
 
-        # Process keyword results
-        for rank, hit in enumerate(keyword_hits, start=1):
-            doc_id = hit["_id"]
-            score = keyword_weight / (k + rank)
-            doc_scores[doc_id] = doc_scores.get(doc_id, 0) + score
-            doc_data[doc_id] = hit["_source"]
-            doc_data[doc_id]["_keyword_rank"] = rank
-            doc_data[doc_id]["_keyword_score"] = hit.get("_score", 0)
+        # Helper function để tính rank
+        def process_hits(hits, weight, prefix):
+            for rank, hit in enumerate(hits, start=1):
+                doc_id = hit["_id"]
+                # Công thức chuẩn có nhân weight
+                score = weight * (1.0 / (k + rank))
 
-        # Process vector results
-        for rank, hit in enumerate(vector_hits, start=1):
-            doc_id = hit["_id"]
-            score = vector_weight / (k + rank)
-            doc_scores[doc_id] = doc_scores.get(doc_id, 0) + score
-            if doc_id not in doc_data:
-                doc_data[doc_id] = hit["_source"]
-            doc_data[doc_id]["_vector_rank"] = rank
-            doc_data[doc_id]["_vector_score"] = hit.get("_score", 0)
+                if doc_id not in doc_scores:
+                    doc_scores[doc_id] = 0.0
+                    doc_data[doc_id] = hit["_source"]
 
-        # Add RRF score to doc_data
-        for doc_id, score in doc_scores.items():
+                doc_scores[doc_id] += score
+                doc_data[doc_id][f"_{prefix}_rank"] = rank
+
+        process_hits(keyword_hits, keyword_weight, "keyword")
+        process_hits(vector_hits, vector_weight, "vector")
+
+        # Sắp xếp lại dựa trên rrf_score mới
+        sorted_docs = sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)
+
+        final_results = {}
+        for doc_id, score in sorted_docs:
             doc_data[doc_id]["_rrf_score"] = score
-            # Bonus nếu xuất hiện trong cả 2 results
-            if (
-                "_keyword_rank" in doc_data[doc_id]
-                and "_vector_rank" in doc_data[doc_id]
-            ):
-                doc_data[doc_id]["_rrf_score"] *= 1.2  # 20% boost
+            final_results[doc_id] = doc_data[doc_id]
 
-        return doc_data
-
-    def _get_section_context(
-        self, section_ids: List[str], max_siblings: int = 2
-    ) -> List[Dict]:
-        """
-        Lấy thêm context từ parent và sibling sections.
-        Useful khi user hỏi về một phần của tiêu chí.
-        """
-        if not section_ids:
-            return []
-
-        # Get parent section IDs
-        parent_ids = set()
-        for sid in section_ids:
-            parts = sid.rsplit(".", 1)
-            if len(parts) > 1:
-                parent_ids.add(parts[0])
-
-        if not parent_ids:
-            return []
-
-        # Query siblings với cùng parent
-        query = {
-            "query": {
-                "bool": {
-                    "should": [
-                        {"terms": {"parent_section_id": list(parent_ids)}},
-                        {"terms": {"section_id": list(parent_ids)}},
-                    ]
-                }
-            },
-            "size": max_siblings * len(parent_ids),
-            "_source": ["title", "section_id", "content"],
-        }
-
-        try:
-            response = self.els_client.search(index=self.index_name, body=query)
-            return [hit["_source"] for hit in response["hits"]["hits"]]
-        except Exception as e:
-            logger.warning(f"Error fetching section context: {str(e)}")
-            return []
+        return final_results
 
     def hybrid_search(
         self,
         query: str,
-        top_k: int = 10,
-        rrf_k: int = 60,
-        keyword_weight: float = 1.0,
-        vector_weight: float = 1.2,  # Slight boost cho semantic
-        include_context: bool = False,
-        num_candidates: int = 100,
+        top_k: int,
+        rrf_k: int,
+        keyword_weight: float,
+        vector_weight: float,  # Slight boost cho semantic
+        include_context: bool,
+        num_candidates: int,
     ) -> List[Dict[str, Any]]:
         """
         Hybrid search với RRF fusion.
@@ -294,7 +243,7 @@ class HealthcareRetriever:
         query_vector = self._get_embedding(text=query)
 
         # Lấy nhiều hơn top_k để RRF có đủ candidates
-        fetch_size = min(top_k * 3, 50)
+        fetch_size = min(top_k * 4, 50)
 
         # Execute both searches
         keyword_query = self._build_keyword_query(query, size=fetch_size)
@@ -367,9 +316,50 @@ class HealthcareRetriever:
                     doc
                     for doc in context_docs
                     if doc.get("section_id") != result["section_id"]
-                ][:3]
+                ][:2]
 
         return results
+
+    def _get_section_context(
+        self, section_ids: List[str], max_siblings: int = 2
+    ) -> List[Dict]:
+        """
+        Lấy thêm context từ parent và sibling sections.
+        Useful khi user hỏi về một phần của tiêu chí.
+        """
+        if not section_ids:
+            return []
+
+        # Get parent section IDs
+        parent_ids = set()
+        for sid in section_ids:
+            parts = sid.rsplit(".", 1)
+            if len(parts) > 1:
+                parent_ids.add(parts[0])
+
+        if not parent_ids:
+            return []
+
+        # Query siblings với cùng parent
+        query = {
+            "query": {
+                "bool": {
+                    "should": [
+                        {"terms": {"parent_section_id": list(parent_ids)}},
+                        {"terms": {"section_id": list(parent_ids)}},
+                    ]
+                }
+            },
+            "size": max_siblings * len(parent_ids),
+            "_source": ["title", "section_id", "content"],
+        }
+
+        try:
+            response = self.els_client.search(index=self.index_name, body=query)
+            return [hit["_source"] for hit in response["hits"]["hits"]]
+        except Exception as e:
+            logger.warning(f"Error fetching section context: {str(e)}")
+            return []
 
     def search_by_criteria(
         self, disorder_name: str, criteria: Optional[str] = None  # "A", "B", "C"...
@@ -458,8 +448,9 @@ class HealthcareRetriever:
                     query=query,
                     top_k=config.get("top_k", 10),
                     rrf_k=config.get("rrf_k", 60),
-                    keyword_weight=config.get("keyword_weight", 1.0),
-                    vector_weight=config.get("vector_weight", 1.2),
+                    keyword_weight=config.get("keyword_weight", 1.2),
+                    vector_weight=config.get("vector_weight", 1.0),
+                    num_candidates=config.get("num_candidates", 50),
                     include_context=config.get("include_context", False),
                 )
 

@@ -108,4 +108,8 @@ class AppConfig:
         PROJET_ROOT / "data" / "evaluate" / "results" / "agent_result_eval.csv"
     )
 
+    EVALUATION_SUMMARY_PATH: str = str(
+        PROJET_ROOT / "data" / "evaluate" / "results" / "evaluation_summary.csv"
+    )
+
     LOG_DIR: str = str(BACKEND_DIR / "logs" / "app.log")

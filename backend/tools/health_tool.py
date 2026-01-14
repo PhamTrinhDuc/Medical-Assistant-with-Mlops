@@ -19,7 +19,7 @@ class DSM5RetrievalTool(BaseTool):
     - Differential diagnosis information
     """
 
-    name: str = "DSM-5"
+    name: str = "DSM5"
 
     description: str = """Tool for querying DSM-5 diagnostic criteria and clinical information.
     Use cases:
@@ -36,7 +36,7 @@ class DSM5RetrievalTool(BaseTool):
 
     def __init__(
         self,
-        embedding_model: str = "google",  # "google" or "openai"
+        embedding_model: str = "openai",  # "google" or "openai"
         top_k: int = 5,
         include_context: bool = True,
         callbacks=None,
@@ -61,7 +61,7 @@ class DSM5RetrievalTool(BaseTool):
     def retriever(self):
         if not self._retriever:
             with threading.Lock():
-                self._retriever = HealthcareRetriever(model_name=self.embedding_model)
+                self._retriever = HealthcareRetriever(embed_model=self.embedding_model)
         return self._retriever
 
     def _format_output(self, results: dict) -> list[dict]:
@@ -79,7 +79,6 @@ class DSM5RetrievalTool(BaseTool):
             formatted_item = {
                 "title": item.get("title"),
                 "content": item.get("content"),
-                "context_headers": item.get("context_headers"),
             }
             formatted_results.append(formatted_item)
         return formatted_results

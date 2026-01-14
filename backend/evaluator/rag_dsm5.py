@@ -1,4 +1,5 @@
 import time
+import os
 import pandas as pd
 from typing import List, Tuple
 from tqdm import tqdm
@@ -10,54 +11,52 @@ from ragas.metrics import (
     AnswerRelevancy,
     ContextPrecision,
     ContextRecall,
-    FactualCorrectness,
+    # FactualCorrectness,
     Faithfulness,
     LLMContextRecall,
 )
-from chains.healthcare_chain import HealthcareRetriever
+from tools.health_tool import DSM5RetrievalTool
 from utils import AppConfig, ModelFactory
 
 DSM5_DATASET_EVAL_PATH = AppConfig.DSM5_DATASET_EVAL_PATH
 DSM5_RESULT_EVAL_PATH = AppConfig.DSM5_RESULT_EVAL_PATH
 
-retriever = HealthcareRetriever()
+retriever = DSM5RetrievalTool(embedding_model="openai", top_k=10, include_context=True)
 model = ModelFactory.get_llm_model("groq")
 
 
 def rag_with_elasticsearch(question: str):
     """Process single question with RAG - used for batch processing"""
     # Get relevant contexts from retriever
-    retrieved_docs = retriever.invoke(query=question)
+    try:
+        retrieved_docs = retriever.invoke(input=question)
+        contexts = ["\n".join([doc["title"], doc["content"]]) for doc in retrieved_docs]
 
-    # Format contexts as list of strings for Ragas
-    contexts = [
-        "\n".join([doc["title"], doc["context_headers"], doc["content"]])
-        for doc in retrieved_docs
-    ]
+        # Format contexts as list of strings for Ragas
 
-    prompt = f"""You are a medical expert assistant specializing in mental health disorders based on DSM-5.
+        prompt = f"""You are a medical expert assistant specializing in mental health disorders based on DSM-5.
+        Use the following context to answer the question accurately and professionally.
+        {contexts}
+        Question: {question}
+        Instructions:
+        - Answer based ONLY on the provided context
+        - Be accurate and cite relevant diagnostic criteria when applicable
+        - If the context doesn't relate to the question, respond with "I don't know"
+        - Provide a clear, professional response
+        - Only using Vietnamese language to generate
 
-    Use the following context to answer the question accurately and professionally.
+        Answer:"""
 
-    {contexts}
+        # Invoke model
+        response = model.invoke(prompt)
+        time.sleep(1)  # To avoid rate limits
+        answer = response.content.strip()
 
-    Question: {question}
+        return answer, contexts
 
-    Instructions:
-    - Answer based ONLY on the provided context
-    - Be accurate and cite relevant diagnostic criteria when applicable
-    - If the context doesn't contain enough information, state that clearly
-    - Provide a clear, professional response
-    - Only using Vietnamese language to generate
-
-    Answer:"""
-
-    # Invoke model
-    response = model.invoke(prompt)
-    time.sleep(1)  # To avoid rate limits
-    answer = response.content.strip()
-
-    return answer, contexts
+    except Exception as e:
+        logger.error(f"Error in rag_with_elasticsearch: {e}")
+        raise ValueError(f"Error in rag_with_elasticsearch: {e}")
 
 
 def batch_rag_evaluation(
@@ -92,7 +91,7 @@ def batch_rag_evaluation(
                 results.append((answer, contexts))
             except Exception as e:
                 logger.error(f"Error processing question: {e}")
-                results.append(("", []))
+                raise ValueError(f"Error processing question: {e}")
 
     return results
 
@@ -108,27 +107,24 @@ def evaluate_rag(testset_df: pd.DataFrame, batch_size: int = 5):
     logger.info(f"Starting RAG evaluation with batch_size={batch_size}...")
 
     # Extract questions
-    questions = testset_df["user_input"].tolist()
+    questions = testset_df["user_input"].tolist()  # limit for groq free tier
 
     # Process in batches using concurrent execution
     results = batch_rag_evaluation(questions, batch_size=batch_size)
 
     # Prepare evaluation data
     eval_data = {
-        "user_input": [],
-        "response": [],
+        "question": [],
+        "answer": [],
         "retrieved_contexts": [],
         "reference": [],
     }
 
-    for idx, (answer, contexts) in enumerate(results):
-        eval_data["user_input"].append(questions[idx])
-        eval_data["response"].append(answer)
+    for idx, (gen_answer, contexts) in enumerate(results):
+        eval_data["question"].append(questions[idx])
+        eval_data["answer"].append(gen_answer)
         eval_data["retrieved_contexts"].append(contexts)
         eval_data["reference"].append(testset_df.iloc[idx].get("reference", ""))
-        eval_data["truth_contexts"].append(
-            testset_df.iloc[idx].get("truth_contexts", [])
-        )
 
     # Evaluate with Ragas metrics
     logger.info("Starting Ragas metrics evaluation...")
@@ -138,7 +134,7 @@ def evaluate_rag(testset_df: pd.DataFrame, batch_size: int = 5):
         metrics=[
             LLMContextRecall(),
             Faithfulness(),
-            FactualCorrectness(),
+            # FactualCorrectness(),
             AnswerRelevancy(),
             ContextPrecision(),
             ContextRecall(),
@@ -151,10 +147,19 @@ if __name__ == "__main__":
     testset_df = pd.read_csv(DSM5_DATASET_EVAL_PATH)
 
     # Run evaluation with batching
-    results = evaluate_rag(testset_df=testset_df, batch_size=5)
+    results = evaluate_rag(testset_df=testset_df.iloc[5:10], batch_size=5)
+    # results.to_pandas().to_csv(DSM5_RESULT_EVAL_PATH, index=False)
 
-    df_result = results.to_pandas()
+    if os.path.exists(DSM5_RESULT_EVAL_PATH):
+        df_result = pd.read_csv(DSM5_RESULT_EVAL_PATH)
+        logger.info("Appending new results to existing results...")
+        df_result = pd.concat([df_result, results.to_pandas()], ignore_index=True)
+    else:
+        df_result = results.to_pandas()
+        logger.info("Creating new results DataFrame...")
+
     df_result.to_csv(DSM5_RESULT_EVAL_PATH, index=False)
-    logger.info(f"Results saved to {DSM5_RESULT_EVAL_PATH}")
+    logger.info(f"RAG evaluation results saved to {DSM5_RESULT_EVAL_PATH}")
+
 
 # python -m evaluator.rag_dsm5

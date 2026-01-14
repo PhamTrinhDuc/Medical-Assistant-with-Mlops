@@ -140,6 +140,7 @@ def generate_cypher_query(
 def generate_dataset(num_pairs: int = 3, batch_size: int = 3) -> pd.DataFrame:
     dataset = []
     schema_info = get_graph_schema()
+    print(schema_info)
 
     logger.info("Generating Cypher query dataset with batching...")
     topics_list = list(TOPICS_SPECIFICS.items())
@@ -170,6 +171,7 @@ def generate_dataset(num_pairs: int = 3, batch_size: int = 3) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    #  python -m process_data.generator_dataset.dataset_cypher
     df_dataset = generate_dataset(num_pairs=5)
     df_dataset.to_csv(AppConfig.CYPHER_DATASET_EVAL_PATH, index=False)
 
