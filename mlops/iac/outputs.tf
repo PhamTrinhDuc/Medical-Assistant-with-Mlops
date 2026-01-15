@@ -17,3 +17,8 @@ output "jaeger" {
   description = "Jaeger (distributed tracing) outputs"
   value       = module.jaeger
 }
+
+output "phoenix" {
+  description = "Phoenix (distributed tracing) outputs"
+  value       = module.phoenix
+}

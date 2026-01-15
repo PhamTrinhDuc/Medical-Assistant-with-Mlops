@@ -55,3 +55,11 @@ module "jaeger" {
   namespace       = var.jaeger_namespace
   environment     = var.environment
 }
+
+module "phoenix" {
+  source = "./modules/phoenix"
+  
+  kubeconfig_path = var.kubeconfig_path
+  namespace       = var.phoenix_namespace
+  environment     = var.environment
+}
