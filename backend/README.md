@@ -286,7 +286,7 @@ The DSM-5 document is organized hierarchically with the following structure:
 
 After analyzing the business data described above, a graph database has been designed as shown below:
 
-![graph-db](images/graph-db.png)
+![graph-db](../images/graph-db.png)
 
 #### Core Nodes (Main Entities):
 
@@ -331,7 +331,7 @@ After analyzing the business data described above, a graph database has been des
 
 Each node contains properties similar to the corresponding CSV table attributes. Additionally, the Review node includes an **embedding** property that contains the vector embedding of the review text for semantic search capabilities:
 
-![node-properties](images/node-properties.png)
+![node-properties](../images/node-properties.png)
 
 #### Relationship Properties:
 
@@ -339,7 +339,7 @@ Each relationship has an **id** property. The COVERED_BY relationship between Vi
 - **billing_amount**: Financial amount for the visit
 - **service_date**: Date when the service was provided
 
-![relationship-properties](images/relationship-properties.png)
+![relationship-properties](../images/relationship-properties.png)
 
 ### 2.2 Setup Neo4j Instance
 
@@ -351,12 +351,12 @@ docker compose -f neo4j.yml up -d
 **Step 2: Access Neo4j Browser**
 Navigate to `localhost:7474` in your web browser. You should see the following interface:
 
-![neo4j-brower](images/neo4j-brower.png)
+![neo4j-brower](../images/neo4j-brower.png)
 
 **Step 3: Enter Neo4j Workspace**
 Click the "Let's go" button below "Try the new hosted Browser". You will see the main Neo4j interface:
 
-![neo4j-instance](images/neo4j-instance.png)
+![neo4j-instance](../images/neo4j-instance.png)
 
 ### 2.3 ETL Data CSV To Neo4j
 
@@ -401,7 +401,7 @@ The script performs a lightweight connectivity check first and then proceeds to 
 #### 2.3.3 Expected result and quick verification
 
 - After a successful import you should be able to open the Neo4j Browser (http://localhost:7474 by default)
-![alt text](images/etl-sucess.png)
+![alt text](../images/etl-sucess.png)
 - Run Cypher queries to inspect nodes and relationships. Example queries:
 ```
 MATCH (h:Hospital) RETURN count(h);
