@@ -36,7 +36,7 @@ This project demonstrates a production-ready AI system that integrates:
 
 ## 🎬 Video Demo
 
-[Watch the system in action](./images/video-demo.mp4)
+![Watch the system in action](./images/video-demo.gif)
 
 ## 🏗️ Project Structure
 
