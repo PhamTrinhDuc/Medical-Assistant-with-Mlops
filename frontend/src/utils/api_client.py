@@ -16,7 +16,7 @@ class APIClient:
     def health_check(self) -> bool:
         """Check if backend is running."""
         try:
-            response = requests.get(f"{self.base_url}/health", timeout=5)
+            response = requests.get(f"{self.base_url}/health/liveness", timeout=90)
             return response.status_code == 200
         except:
             return False

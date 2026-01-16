@@ -67,7 +67,7 @@ resource "kubernetes_deployment" "phoenix" {
 # 3. Tạo Service để truy cập (NodePort cho Minikube)
 resource "kubernetes_service" "phoenix_svc" {
   metadata {
-    name      = "phoenix-service"
+    name      = "phoenix"
     namespace = kubernetes_namespace.phoenix.metadata[0].name
   }
 
