@@ -8,7 +8,7 @@ Những tham số này quyết định test sẽ chạy như thế nào. Hãy c�
 |----------|-------|-----------|
 | **Endpoint** | `/chat/mock-test` | Chọn endpoint nào để test: agent thật, mock, hay qua ingress |
 | **Environment** | `dev / staging / prod` | Mỗi env khác nhau: dev không rate-limit, prod có WAF |
-| **Host** | `http://api.medical:8000` | URL backend để Locust gửi request |
+| **Host** | `http://api.chatbot-medical:8000` | URL backend để Locust gửi request |
 | **Peak Users** | `100` | Số user tối đa sẽ tăng đến (ví dụ: từ 0 → 100 user) |
 | **Ramp-up Rate** | `5 users/s` | Tốc độ tăng user (5 users/s = sau 20s có 100 users) |
 | **Test duration** | `10 min` | Bao lâu thì dừng test (lâu hơn để thấy pattern ổn định) |
@@ -87,3 +87,10 @@ Làm theo thứ tự này khi kết quả test không tốt:
 5. **Bước 5**: Điều chỉnh config → Rate-limit, timeout, concurrency pool
 6. **Bước 6**: Chạy lại test → So sánh kết quả trước/sau
 
+
+
+## 6. Test locust test qua Nginx 
+- 1. Setting Nginx: `hostNetwork: true`
+- 2. Mapping Ip Minikube sang domain trong file `/etc/hosts`: `192.168.49.2  myapp.com`
+- 3. Chạy lệnh locust: 
+  `locust -f locust_test.py --host https://myapp.com`
