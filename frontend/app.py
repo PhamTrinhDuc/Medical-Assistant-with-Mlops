@@ -83,7 +83,7 @@ if not st.session_state.logged_in:
 else:
     # Check backend
     if not api_client.health_check():
-        st.error("⚠️ Backend is not available. Make sure it's running on http://localhost:8000")
+        st.error("⚠️ Backend is not available. Make sure it's running on port 8000")
     else:
         if page == "Chat":
             from src.pages.chat import show_chat
@@ -91,3 +91,4 @@ else:
         elif page == "Tools":
             from src.pages.tools import show_tools
             show_tools()
+# streamlit run app.py

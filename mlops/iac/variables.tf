@@ -42,22 +42,32 @@ variable "jaeger_namespace" {
 }
 
 
+variable "phoenix_namespace" {
+  description = "Kubernetes namespace for Phoenix"
+  type        = string
+  default     = "phoenix"
+}
+
 variable "ingress_config" {
   description = "Ingress configuration"
   type = object({
     app_namespace  = string
     jaeger_namespace = string
-    
+    phoenix_namespace = string
+
     frontend_host  = string
     backend_host   = string
     jaeger_host    = string
-    
+    phoenix_host   = string
+
     frontend_port  = number
     backend_port   = number
     jaeger_port    = number
-    
+    phoenix_port   = number
+
     frontend_svc   = string
     backend_svc    = string
     jaeger_svc     = string
+    phoenix_svc    = string
   })
 }

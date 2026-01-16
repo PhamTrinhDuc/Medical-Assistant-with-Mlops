@@ -27,7 +27,8 @@ resource "helm_release" "nginx_ingress" {
   
   set {
     name  = "controller.hostNetwork"
-    value = var.environment == "prod" ? "true" : "false"  # ← Lắng nghe trực tiếp port 80 trên host
+    # value = var.environment == "prod" ? "true" : "false"  # ← Lắng nghe trực tiếp port 80 trên host
+    value = "true"
   }
 
   set {

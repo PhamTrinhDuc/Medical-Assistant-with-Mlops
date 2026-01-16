@@ -55,13 +55,16 @@ Gói tin đi qua ClusterIP của Service, sau đó được đẩy vào một tr
 
 * **Vấn đề:** K8s chạy trong mạng ảo, máy thật không gọi vào được cổng 80 của IP Minikube.
 * **Giải pháp:** * Sử dụng `hostNetwork: true` để Nginx chiếm cổng 80 của máy host (Minikube).
-* Sử dụng `minikube tunnel` nếu dùng Service type `LoadBalancer`.
-
+* Sử dụng `minikube tunnel` nếu dùng Service type `LoadBalancer`
+```bash
+kubectl port-forward ingress-nginx-controller-77cf7bbb66-sf2sr 8080:80 -n ingress-nginx
+```
 
 
 ### 7. Cách Test "Pro" (Không cần sửa file hosts)
 
 * **Cú pháp:** `curl -H "Host: <domain-của-bạn>" http://<IP-Minikube>/<path>`
+<!-- curl -H "Host: api.chatbot-medical.local" http://192.168.49.2 -->
 * **Ý nghĩa:** Truyền trực tiếp tên miền vào Header để Nginx nhận diện được Virtual Host mà không cần thông qua hệ thống phân giải DNS của máy tính.
 
 ---

@@ -5,20 +5,35 @@
 ### 1. Deploy chart using Helm: 
 ```bash
 helm install chatbot-backend . --namespace default
+# Tắt pod cũ vào tạo pod mới trên yaml hiện tại 
+kubectl rollout restart deployment chatbot-backend
 ```
 ### 2. View detail pod
 ```bash
 kubectl describe pod chatbot-backend-d7cd5cf97-gxbhd
 ```
-### 3. View Service of Pod
+
+### 3. Restart pod
+```bash
+kubectl scale deployment chatbot-backend --replicas=0
+kubectl get pod
+kubectl scale deployment chatbot-backend --replicas=3
+```
+
+### 4. View log container in pod
+```bash
+kubectl get pod <tên-pod> -o jsonpath='{.spec.containers[*].name}'
+kubectl exec -it <tên-pod> -c <tên-container> -- /bin/bash
+```
+### 5. View Service of Pod
 ```bash
 kubectl get svc -o wide
 ```
-### 4. Get all secrets
+### 6. Get all secrets
 ```bash
 kubectl get secrets
 ```
-### 5. Create secret
+### 7. Create secret
 ```bash
 kubectl create secret generic <secret_name> \
   --from-literal=OPENAI_API_KEY="sk-proj" \
@@ -39,12 +54,12 @@ kubectl create secret generic <secret_name> \
   --from-literal=ENV_LOG="production" \
   --namespace <name_namespace>
 ```
-### 6. Delete secret 
+### 8. Delete secret 
 ```bash
 kubectl delete secret <secret_name>
 ```
 
-### 7. Access to Backend-FastAPI
+### 9. Access to Backend-FastAPI
 ```bash
  # 1. Access in WSL (not Window)
 minikube service chatbot-backend
@@ -54,25 +69,25 @@ kubectl port-forward svc/chatbot-backend 8000:8000
 curl http://192.168.49.2:32663/health # or brower in WSL
 ```
 
-### 8. Upgrade Helm chart
+### 10. Upgrade Helm chart
 ```bash
 cd mlops/k8s/charts/backend
 helm upgrade chatbot-backend .
 ```
 
-### 9. View list helm
+### 11. View list helm
 ```bash
 helm list --all-namespaces
 ```
 
-### 10. Switch namspaces 
+### 12. Switch namspaces 
 ```bash
 # List namespaces 
 kubens 
 # Switch to specific namespace
 kubens <namespace_name>
 ```
-### 11. Debug YAML 
+### 13. Debug YAML 
 ```bash
 kubectl apply -f ingress.yaml --dry-run=client
 kubectl explain ingress.spec

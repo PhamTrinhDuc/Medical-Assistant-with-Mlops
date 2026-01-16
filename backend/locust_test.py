@@ -22,7 +22,7 @@ class ChatMockUser(HttpUser):
         )
 
 
-# locust -f locustfile.py --host https://myapp.com
+# locust -f locust_test.py --host https://myapp.com
 
 # Users:      100 # số lượng user đồng thời
 # Ramp up:    1–2 users/s # tốc độ tăng user (mỗi giây tăng 1-2 user)
