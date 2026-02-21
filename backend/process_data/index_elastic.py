@@ -1,7 +1,4 @@
-import os
-import sys
-import json
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+import pickle
 import requests
 import time
 import tqdm
@@ -89,15 +86,15 @@ class ElsIndexer:
 
   def _get_chunks(self): 
     try:
-      with open(self.chunk_path, 'r', encoding="utf-8") as f:
-        chunks = json.load(f)  # Load toàn bộ mảng
+      with open(self.chunk_path, 'rb') as f:
+        chunks = pickle.load(f)  # Load toàn bộ mảng
         if isinstance(chunks, list):
           for chunk in chunks:
             yield chunk
         else:
           logger.error(f"Expected list of chunks, got {type(chunks)}")
-    except json.JSONDecodeError as e:
-      logger.error(f"Error parsing JSON file: {str(e)}")
+    except Exception as e:
+      logger.error(f"Error parsing pickle file: {str(e)}")
     except FileNotFoundError:
       logger.error(f"Chunk file not found: {self.chunk_path}")
 
@@ -150,57 +147,24 @@ class ElsIndexer:
       },
       
       # ============================================================
-      # MAPPINGS: Định nghĩa schema cho documents
+      # MAPPINGS: Định nghĩa schema cho documents từ unstructured library
       # ============================================================
       "mappings": {
         "properties": {
-          # ─────────── ID & Structure ───────────
-          # keyword: exact match, dùng cho filter
-          "index": {"type": "keyword"},              # "chunk-1", "chunk-2" - ID duy nhất
-          "section_id": {"type": "keyword"},         # "1.2.3" - mã section
-          "parent_section_id": {"type": "keyword"},  # "1.2" - mã section cha
-          
-          # ─────────── Searchable Text Fields ───────────
-          # text + keyword: vừa search full-text, vừa filter exact
-          "title": {
-              "type": "text",                        # Full-text search
-              "analyzer": "vietnamese",              # Dùng analyzer tự định nghĩa
-              "fields": {
-                  "keyword": {                       # Sub-field cho exact match
-                    "type": "keyword", 
-                    "ignore_above": 256              # Bỏ qua nếu > 256 chars
-                  }
-              }
-          },
-          "sub_title": {
-              "type": "text",
-              "analyzer": "vietnamese",
-              "fields": {
-                  "keyword": {"type": "keyword", "ignore_above": 256}
-              }
-          },
-          "parent_section_title": {
-              "type": "text",
-              "analyzer": "vietnamese",
-              "fields": {
-                  "keyword": {"type": "keyword", "ignore_above": 256}
-              }
-          },
-          
-          # ─────────── Content Fields ───────────
-          # Chỉ cần text (không cần keyword vì quá dài)
-          "context_headers": {
+          # ─────────── ID & Content ───────────
+          "element_id": {"type": "keyword"},              # Unique element ID
+          "text": {
             "type": "text",
             "analyzer": "vietnamese"
           },
-          "content": {
-            "type": "text",
-            "analyzer": "vietnamese" 
-          },
 
-          # ─────────── Metadata ───────────
-          "page_start": {"type": "integer"},         # Số trang, dùng cho range query
-          "merge_from": {"type": "text"},           # Thông tin merge (nếu có)
+          # ─────────── Metadata Fields ───────────
+          "file_directory": {"type": "text"},         # File directory path
+          "filename": {"type": "keyword"},             # Exact filename for filtering
+          "filetype": {"type": "keyword"},             # MIME type (application/pdf, etc.)
+          "languages": {"type": "keyword"},            # Language codes array
+          "last_modified": {"type": "date"},           # Last modified timestamp
+          "page_number": {"type": "integer"},          # Page number for range queries
           
           # ─────────── Vector Embedding ───────────
           "embedding": {
@@ -227,33 +191,34 @@ class ElsIndexer:
   def _proces_batch(self, chunks: list[dict], start_id: int):
     """
     Embedding + index batch vào Elasticsearch bằng Bulk API
-    """ 
-    contents = [chunk['content'] for chunk in chunks]
+    Processed structure from unstructured library: element_id, text, metadata
+    """
+    # Extract text content for embedding
+    contents = [chunk.get('text', '') for chunk in chunks]
     embeddings = self._get_embeddings(text=contents)
 
     # Chuẩn bị Bulk action
     def generate_actions(): 
       for idx, (chunk, embedding) in enumerate(zip(chunks, embeddings)): 
-        doc_id = f"{start_id + idx}"
+        # Use element_id as doc_id, fallback to sequential ID
+        doc_id = chunk.get('element_id', f"{start_id + idx}")
 
         # Safely access metadata
-        metadata = chunk.get("metadata") or {}
+        metadata = chunk.get("metadata", {})
         
         yield {
           "_op_type": "index", 
           "_index": self.index_name, 
           "_id": doc_id, 
           "_source": {
-            "index": chunk.get('index'), 
-            "section_id": chunk.get('section_id'), 
-            "parent_section_id": chunk.get('parent_section_id'), 
-            "title": chunk.get('title'), 
-            "sub_title": chunk.get("sub_title"), 
-            "parent_section_title": chunk.get("parent_section_title"), 
-            "context_headers": chunk.get("context_headers"),
-            "content": chunk.get("content"), 
-            "page_start": metadata.get("page_start"), 
-            "merge_from": metadata.get("merge_from", "No merge"),
+            "element_id": chunk.get('element_id'),
+            "text": chunk.get('text', ''),
+            "file_directory": metadata.get('file_directory'),
+            "filename": metadata.get('filename'),
+            "filetype": metadata.get('filetype'),
+            "languages": metadata.get('languages', []),
+            "last_modified": metadata.get('last_modified'),
+            "page_number": metadata.get('page_number'),
             "embedding": embedding
           }
         }
@@ -275,8 +240,8 @@ class ElsIndexer:
   def upload_to_els(self):
     # Count chunks from JSON array
     try:
-      with open(self.chunk_path, 'r', encoding="utf-8") as f:
-        chunks_data = json.load(f)
+      with open(self.chunk_path, 'rb') as f:
+        chunks_data = pickle.load(f)
         total_chunks = len(chunks_data) if isinstance(chunks_data, list) else 0
     except Exception as e:
       logger.error(f"Error counting chunks: {str(e)}")
@@ -290,7 +255,7 @@ class ElsIndexer:
 
     with tqdm.tqdm(total=total_chunks, desc="Indexing to ELS") as pbar: 
       for chunk in self._get_chunks(): 
-        batch.append(chunk)
+        batch.append(chunk.to_dict() if hasattr(chunk, 'to_dict') else chunk)
 
         if len(batch) >= self.batch_size: 
           self._proces_batch(chunks=batch, start_id=chunk_id)
@@ -346,7 +311,7 @@ def main():
   
   # Initialize indexer
   indexer = ElsIndexer(
-    model_name="hf_api",
+    model_name="openai",
     batch_size=args.batch_size,
     chunk_path=args.chunk_path
   )

@@ -13,14 +13,18 @@ from utils import AppConfig, logger
 
 class HealthcareRetriever:
     """
-    Hybrid Search Retriever cho DSM-5 Vietnamese psychiatric manual.
+    Hybrid Search Retriever với Elasticsearch.
+    Tương thích với structure từ unstructured library:
+    - element_id: Unique ID
+    - text: Nội dung văn bản
+    - metadata: {filename, page_number, file_directory, filetype, languages, last_modified}
     
     Chiến lược search:
     ─────────────────────────────────────────────────────────────────
     1. KEYWORD SEARCH (BM25):
-       - Multi-match trên title (boost cao), content, context_headers
+       - Multi-match trên text (boost cao), filename, file_directory
        - Dùng Vietnamese analyzer (đã bỏ dấu, lowercase)
-       - Phrase matching cho medical terms
+       - Phrase matching cho exact matches
        
     2. SEMANTIC SEARCH (kNN):
        - Dense vector search với cosine similarity
@@ -29,10 +33,6 @@ class HealthcareRetriever:
     3. HYBRID + RRF:
        - Reciprocal Rank Fusion kết hợp 2 phương pháp
        - Ưu tiên documents xuất hiện trong cả 2 results
-       
-    4. HIERARCHICAL BOOST:
-       - Boost documents cùng section với top results
-       - Trả về context (parent, siblings) khi cần
     ─────────────────────────────────────────────────────────────────
     """
     
@@ -75,53 +75,43 @@ class HealthcareRetriever:
         self, 
         query: str, 
         size: int = 20,
-        boost_title: float = 3.0,
-        boost_context: float = 1.5
+        boost_text: float = 2.0,
+        boost_filename: float = 3.0,
+        boost_directory: float = 1.5
     ) -> Dict:
         """
         Build BM25 keyword query với multi-match strategy.
         
         Strategy:
-        - title^3: Boost cao cho exact match tiêu đề
-        - sub_title^2: Boost cho tiêu chí A, B, C...
-        - context_headers^1.5: Breadcrumb context
-        - content: Nội dung chính
+        - text^2: Full-text search với Vietnamese analyzer
+        - filename^3: Boost cao cho filename matches
+        - file_directory^1.5: Boost cho directory matches
         """
         return {
             "query": {
                 "bool": {
                     "should": [
-                        # Multi-match với cross_fields (tìm từ across all fields)
+                        # Multi-match trên text content
                         {
                           "multi_match": {
                               "query": query,
                               "fields": [
-                                  f"title^{boost_title}",
-                                  "sub_title^2",
-                                  f"context_headers^{boost_context}",
-                                  "content"
+                                  f"text^{boost_text}",
+                                  f"filename^{boost_filename}",
+                                  f"file_directory^{boost_directory}"
                               ],
                               "type": "best_fields",
                               "operator": "or",
                               "minimum_should_match": "30%"
                           }
                         },
-                        # Phrase match cho medical terms (exact phrase boost)
+                        # Phrase match cho exact phrases
                         {
                           "multi_match": {
                               "query": query,
-                              "fields": ["title^4", "content^2"],
+                              "fields": ["text^2"],
                               "type": "phrase",
                               "slop": 2  # Cho phép 2 từ xen giữa
-                          }
-                        },
-                        # Match trên parent_section_title để lấy context
-                        {
-                          "match": {
-                              "parent_section_title": {
-                                  "query": query,
-                                  "boost": 1.0
-                              }
                           }
                         }
                     ],
@@ -129,9 +119,8 @@ class HealthcareRetriever:
                 }
             },
             "size": size,
-            "_source": ["title", "sub_title", "content", "section_id", 
-                       "parent_section_id", "parent_section_title", 
-                       "context_headers", "page_start"]
+            "_source": ["element_id", "text", "filename", "page_number", 
+                       "file_directory", "filetype", "languages", "last_modified"]
         }
 
     def _build_vector_query(
@@ -154,9 +143,8 @@ class HealthcareRetriever:
               "k": size,
               "num_candidates": num_candidates
           },
-          "_source": ["title", "sub_title", "content", "section_id", 
-                      "parent_section_id", "parent_section_title", 
-                      "context_headers", "page_start"]
+          "_source": ["element_id", "text", "filename", "page_number",
+                      "file_directory", "filetype", "languages", "last_modified"]
         }
 
     def _reciprocal_rank_fusion(
@@ -208,47 +196,46 @@ class HealthcareRetriever:
         
         return doc_data
 
-    def _get_section_context(
-        self, 
-        section_ids: List[str], 
-        max_siblings: int = 2
-    ) -> List[Dict]:
+    def search_by_filename(
+        self,
+        filename: str,
+        page_number: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         """
-        Lấy thêm context từ parent và sibling sections.
-        Useful khi user hỏi về một phần của tiêu chí.
+        Tìm kiếm theo tên file và page number cụ thể.
+        Ví dụ: search_by_filename("document.pdf", 5)
         """
-        if not section_ids:
-            return []
-            
-        # Get parent section IDs
-        parent_ids = set()
-        for sid in section_ids:
-            parts = sid.rsplit('.', 1)
-            if len(parts) > 1:
-                parent_ids.add(parts[0])
-        
-        if not parent_ids:
-            return []
-        
-        # Query siblings với cùng parent
         query = {
             "query": {
                 "bool": {
-                    "should": [
-                        {"terms": {"parent_section_id": list(parent_ids)}},
-                        {"terms": {"section_id": list(parent_ids)}}
+                    "must": [
+                        {"term": {"filename": filename}}
                     ]
                 }
             },
-            "size": max_siblings * len(parent_ids),
-            "_source": ["title", "section_id", "content"]
+            "size": 20,
+            "_source": ["element_id", "text", "filename", "page_number",
+                       "file_directory", "filetype", "languages", "last_modified"]
         }
+        
+        # Add page_number filter if provided
+        if page_number is not None:
+            query["query"]["bool"]["must"].append(
+                {"term": {"page_number": page_number}}
+            )
         
         try:
             response = self.els_client.search(index=self.index_name, body=query)
-            return [hit["_source"] for hit in response["hits"]["hits"]]
+            return [
+                {
+                    "id": hit["_id"],
+                    "score": hit["_score"],
+                    **hit["_source"]
+                }
+                for hit in response["hits"]["hits"]
+            ]
         except Exception as e:
-            logger.warning(f"Error fetching section context: {str(e)}")
+            logger.warning(f"Error searching by filename: {str(e)}")
             return []
 
     def hybrid_search(
@@ -258,7 +245,6 @@ class HealthcareRetriever:
         rrf_k: int = 60,
         keyword_weight: float = 1.0,
         vector_weight: float = 1.2,  # Slight boost cho semantic
-        include_context: bool = False,
         num_candidates: int = 100
     ) -> List[Dict[str, Any]]:
         """
@@ -270,7 +256,6 @@ class HealthcareRetriever:
             rrf_k: RRF constant
             keyword_weight: Weight cho BM25
             vector_weight: Weight cho semantic search
-            include_context: Có lấy thêm sibling sections không
             num_candidates: Số candidates cho kNN
             
         Returns:
@@ -317,18 +302,18 @@ class HealthcareRetriever:
         
         # Format results
         results = []
-        section_ids = []
         
         for doc_id, data in sorted_docs:
             result = {
                 "id": doc_id,
-                "title": data.get("title", ""),
-                "sub_title": data.get("sub_title", ""),
-                "content": data.get("content", ""),
-                "section_id": data.get("section_id", ""),
-                "parent_section_title": data.get("parent_section_title", ""),
-                "context_headers": data.get("context_headers", ""),
-                "page_start": data.get("page_start"),
+                "element_id": data.get("element_id", doc_id),
+                "text": data.get("text", ""),
+                "filename": data.get("filename", ""),
+                "page_number": data.get("page_number"),
+                "file_directory": data.get("file_directory", ""),
+                "filetype": data.get("filetype", ""),
+                "languages": data.get("languages", []),
+                "last_modified": data.get("last_modified"),
                 "scores": {
                     "rrf": round(data.get("_rrf_score", 0), 4),
                     "keyword_rank": data.get("_keyword_rank"),
@@ -336,73 +321,47 @@ class HealthcareRetriever:
                 }
             }
             results.append(result)
-            if data.get("section_id"):
-                section_ids.append(data["section_id"])
-        
-        # Optionally add section context
-        if include_context and section_ids:
-            context_docs = self._get_section_context(section_ids)
-            for result in results:
-                result["related_sections"] = [
-                    doc for doc in context_docs 
-                    if doc.get("section_id") != result["section_id"]
-                ][:3]
         
         return results
 
-    def search_by_criteria(
+    def search_by_page_range(
         self,
-        disorder_name: str,
-        criteria: Optional[str] = None  # "A", "B", "C"...
+        filename: str,
+        page_start: int,
+        page_end: int
     ) -> List[Dict[str, Any]]:
         """
-        Tìm kiếm theo tên rối loạn và tiêu chí cụ thể.
-        Ví dụ: search_by_criteria("Rối loạn trầm cảm", "A")
+        Tìm kiếm theo file và khoảng trang cụ thể.
+        Ví dụ: search_by_page_range("document.pdf", 1, 10)
         """
-        query_parts = [disorder_name]
-        if criteria:
-            query_parts.append(f"Tiêu chí {criteria}")
-        
-        # Build specific query for criteria
         query = {
             "query": {
                 "bool": {
                     "must": [
-                        {
-                            "multi_match": {
-                                "query": disorder_name,
-                                "fields": ["title^3", "parent_section_title^2", "context_headers"],
-                                "type": "phrase",
-                                "slop": 3
-                            }
-                        }
-                    ],
-                    "should": [
-                        {
-                            "match": {
-                                "sub_title": {
-                                    "query": f"Tiêu chí {criteria}" if criteria else "",
-                                    "boost": 5
-                                }
-                            }
-                        }
-                    ] if criteria else []
+                        {"term": {"filename": filename}},
+                        {"range": {"page_number": {"gte": page_start, "lte": page_end}}}
+                    ]
                 }
             },
-            "size": 10,
-            "_source": ["title", "sub_title", "content", "section_id", 
-                       "parent_section_title", "context_headers"]
+            "size": 100,
+            "sort": [{"page_number": {"order": "asc"}}],
+            "_source": ["element_id", "text", "filename", "page_number",
+                       "file_directory", "filetype", "languages", "last_modified"]
         }
         
-        response = self.els_client.search(index=self.index_name, body=query)
-        return [
-            {
-                "id": hit["_id"],
-                "score": hit["_score"],
-                **hit["_source"]
-            }
-            for hit in response["hits"]["hits"]
-        ]
+        try:
+            response = self.els_client.search(index=self.index_name, body=query)
+            return [
+                {
+                    "id": hit["_id"],
+                    "score": hit["_score"],
+                    **hit["_source"]
+                }
+                for hit in response["hits"]["hits"]
+            ]
+        except Exception as e:
+            logger.warning(f"Error searching by page range: {str(e)}")
+            return []
 
     def invoke(
         self, 
@@ -418,8 +377,7 @@ class HealthcareRetriever:
         top_k=config.get("top_k", 10),
         rrf_k=config.get("rrf_k", 60),
         keyword_weight=config.get("keyword_weight", 1.0),
-        vector_weight=config.get("vector_weight", 1.2),
-        include_context=config.get("include_context", False)
+        vector_weight=config.get("vector_weight", 1.2)
       )
     
     async def ainvoke(
@@ -439,8 +397,7 @@ class HealthcareRetriever:
       
       Output format:
       ─────────────────────────────────────────────────────────────────
-      [Section 1.2.3] Tiêu đề section
-      Tiêu chí: A
+      [File: document.pdf | Page: 5]
       
       Nội dung chunk...
       ─────────────────────────────────────────────────────────────────
@@ -449,11 +406,11 @@ class HealthcareRetriever:
       total_chars = 0
       
       for result in results:
-          header = f"[Section {result.get('section_id', 'N/A')}] {result.get('title', '')}"
-          if result.get('sub_title'):
-              header += f"\nTiêu chí: {result['sub_title']}"
+          filename = result.get('filename', 'N/A')
+          page_num = result.get('page_number', 'N/A')
+          header = f"[File: {filename} | Page: {page_num}]"
           
-          content = result.get('content', '')
+          content = result.get('text', '')
           entry = f"{header}\n\n{content}\n{'─' * 60}\n"
           
           if total_chars + len(entry) > max_chars:
@@ -469,16 +426,21 @@ if __name__ == "__main__":
     retriever = HealthcareRetriever(model_name="openai")
     
     # Test hybrid search
-    query = "Rối loạn trầm cảm"
+    query = "Rối loạn ngôn ngữ ở trẻ em là gì?"
     print(f"\n🔍 Query: '{query}'\n") 
     
-    results = retriever.invoke(query, config={"top_k": 5, "include_context": False})
+    results = retriever.invoke(query, config={"top_k": 5})
     
     print(f"Found {len(results)} results:\n")
     for i, result in enumerate(results, 1):
-      print(f"#{i} [{result['section_id']}] {result['title'][:60]}...")
-      print(f"   Sub-title: {result.get('sub_title', 'N/A')}")
+      print(f"#{i} [{result['element_id']}]")
+      print(f"   File: {result.get('filename', 'N/A')} (page {result.get('page_number', 'N/A')})")
       print(f"   Scores: {result['scores']}")
-      print(f"   Content: {result['content']}")
+      print(f"   Content: {result['text'][:150]}...")
       print()
+    
+    # # Test format context for LLM
+    # print("\n" + "="*80)
+    # print("FORMATTED CONTEXT FOR LLM:")
+    # print("="*80)
     # print(retriever.format_context_for_llm(results, max_chars=2000))   

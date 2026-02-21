@@ -40,7 +40,7 @@ class AppConfig:
   ELS_PORT: str = os.getenv("ELS_PORT")
 
   JAEGER_HOST: str = os.getenv("JAEGER_HOST")
-  JAEGER_PORT: str = int(os.getenv("JAEGER_PORT")) # convert sang int nếu không sẽ bug 
+  JAEGER_PORT: str = int(os.getenv("JAEGER_PORT", 6831)) # convert sang int nếu không sẽ bug 
 
   # PARAMETERS
   VECTOR_SIZE: int=768
@@ -72,7 +72,7 @@ class AppConfig:
   # PATH DATA
   HOSPITAL_PATH: str = str(PROJET_ROOT / "data")
   DSM5_PATH: str = str(PROJET_ROOT / "data" / "dsm5" / 'dsm-5-cac-tieu-chuan-chan-doan.pdf')
-  DSM5_CHUNKS_PATH: str = str(PROJET_ROOT / "data" / "dsm5" / "dsm5_chunks.json")
+  DSM5_CHUNKS_PATH: str = str(PROJET_ROOT / "data" / "dsm5" / "chunks_dsm5.pkl")
 
   DSM5_DATASET_EVAL_PATH: str = str(PROJET_ROOT / "data" / "evaluate" / "dataset" / "dsm5_dataset_eval.csv")
   DSM5_RESULT_EVAL_PATH: str = str(PROJET_ROOT / "data" / "evaluate" / "results" / "dsm5_result_eval.csv")
