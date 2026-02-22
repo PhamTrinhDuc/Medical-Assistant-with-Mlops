@@ -22,6 +22,7 @@ chatbot.db
 *.html 
 .terraform
 langfuse_db_data
+volumes
 
 # Distribution / packaging
 .Python

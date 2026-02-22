@@ -390,37 +390,6 @@ class HealthcareRetriever:
         """
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self.invoke, query, config)
-    
-    def format_context_for_llm(self, results: List[Dict], max_chars: int = 8000) -> str:
-      """
-      Format search results thành context string cho LLM.
-      
-      Output format:
-      ─────────────────────────────────────────────────────────────────
-      [File: document.pdf | Page: 5]
-      
-      Nội dung chunk...
-      ─────────────────────────────────────────────────────────────────
-      """
-      context_parts = []
-      total_chars = 0
-      
-      for result in results:
-          filename = result.get('filename', 'N/A')
-          page_num = result.get('page_number', 'N/A')
-          header = f"[File: {filename} | Page: {page_num}]"
-          
-          content = result.get('text', '')
-          entry = f"{header}\n\n{content}\n{'─' * 60}\n"
-          
-          if total_chars + len(entry) > max_chars:
-              break
-              
-          context_parts.append(entry)
-          total_chars += len(entry)
-      
-      return "\n".join(context_parts)
-
 
 if __name__ == "__main__":
     retriever = HealthcareRetriever(model_name="openai")

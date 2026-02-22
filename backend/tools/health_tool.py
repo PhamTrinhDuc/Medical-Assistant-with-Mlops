@@ -1,7 +1,7 @@
 import threading
 
 from langchain.tools import BaseTool
-from chains.healthcare_chain import HealthcareRetriever
+from chains.els_healthcare_chain import HealthcareRetriever
 from utils import logger
 
 
@@ -38,8 +38,6 @@ class DSM5RetrievalTool(BaseTool):
         self,
         embedding_model: str = "openai",  # "google" or "openai"
         top_k: int = 5,
-        include_context: bool = True,
-        callbacks=None,
     ):
         """
         Initialize DSM5RetrievalTool.
@@ -54,14 +52,12 @@ class DSM5RetrievalTool(BaseTool):
         self._retriever = None
         self.embedding_model = embedding_model
         self.top_k = top_k
-        self.include_context = include_context
-        self.callbacks = callbacks
 
     @property
     def retriever(self):
         if not self._retriever:
             with threading.Lock():
-                self._retriever = HealthcareRetriever(embed_model=self.embedding_model)
+                self._retriever = HealthcareRetriever(model_name=self.embedding_model)
         return self._retriever
 
     def _format_output(self, results: dict) -> list[dict]:
@@ -77,8 +73,10 @@ class DSM5RetrievalTool(BaseTool):
         formatted_results = []
         for item in results:
             formatted_item = {
-                "title": item.get("title"),
-                "content": item.get("content"),
+                "element_id": item['element_id'],
+                "source": f"   File: {item.get('filename', 'N/A')} (page {item.get('page_number', 'N/A')})",
+                "score": item.get('score', 'N/A'),
+                "text": item['text'],
             }
             formatted_results.append(formatted_item)
         return formatted_results
@@ -100,8 +98,6 @@ class DSM5RetrievalTool(BaseTool):
                 query=query,
                 config={
                     "top_k": self.top_k,
-                    "include_context": self.include_context,
-                    "callbacks": self.callbacks,
                 },
             )
             return self._format_output(results)
@@ -127,8 +123,6 @@ class DSM5RetrievalTool(BaseTool):
                 query=query,
                 config={
                     "top_k": self.top_k,
-                    "include_context": self.include_context,
-                    "callbacks": self.callbacks,
                 },
             )
             return self._format_output(results)
@@ -142,12 +136,11 @@ class DSM5RetrievalTool(BaseTool):
 if __name__ == "__main__":
     # python -m tools.health_tool
 
-    tool = DSM5RetrievalTool(embedding_model="google", top_k=3, include_context=True)
+    tool = DSM5RetrievalTool(embedding_model="google", top_k=3)
     query = "Rối loạn tic là gì và được phân loại như thế nào trong DSM-5?"
-    response = tool.invoke(input=query)
+    response = tool._run(query=query)
     print(f"Query: {query}\n")
     print("Response:")
     for idx, item in enumerate(response):
-        print(f"\nResult {idx + 1}:")
-        print(f"Title: {item['title']}")
-        print(f"Content: {item['content']}")
+       print(item['text'])
+       print("-" * 50)

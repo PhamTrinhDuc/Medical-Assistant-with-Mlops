@@ -19,7 +19,7 @@ class AppConfig:
   # LLM AND EMBEDDING MODEL CONFIGURATION
   OPENAI_LLM: str = "gpt-4o-mini"
   GOOGLE_LLM: str = "models/gemini-2.5-flash-lite"
-  GROQ_LLM: str = "moonshotai/kimi-k2-instruct-0905" # openai/gpt-oss-120b
+  GROQ_LLM: str = "llama-3.3-70b-versatile" # openai/gpt-oss-120b
   OPENAI_EMBEDDING: str="text-embedding-3-small"
   GOOGLE_EMBEDDING: str="models/gemini-embedding-001"
   HF_EMBEDDING_API: str = os.getenv("HF_EMBEDDING_API")
@@ -41,6 +41,10 @@ class AppConfig:
 
   JAEGER_HOST: str = os.getenv("JAEGER_HOST")
   JAEGER_PORT: str = int(os.getenv("JAEGER_PORT", 6831)) # convert sang int nếu không sẽ bug 
+
+  MILVUS_HOST: str = os.getenv("MILVUS_HOST")
+  MILVUS_PORT: str = os.getenv("MILVUS_PORT")
+  MILVUS_INDEX: str = "healthcare_docs"
 
   # PARAMETERS
   VECTOR_SIZE: int=768
